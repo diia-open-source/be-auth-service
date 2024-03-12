@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+option java_multiple_files = true;
+option java_package = "ua.gov.diia.auth";
+option java_outer_classname = "DiiaAuthService";
+
+service AuthService {
+
+  rpc completeUserAuthSteps (CompleteUserAuthStepsRequest) returns (google.protobuf.Empty) {}
+
+  rpc getUserOpenIdData (GetUserOpenIdDataRequest) returns (UserOpenIdData) {}
+
+  rpc getSessionById (GetSessionByIdRequest) returns (SessionByIdResponse) {}
+  
+  rpc removeTokensByUserIdentifier (RemoveTokensByUserIdentifierRequest) returns (google.protobuf.Empty) {}
+}
+
+message CompleteUserAuthStepsRequest {
+  string schemaCode = 1;
+  string processId = 2;
+}
+
+message GetUserOpenIdDataRequest {
+  string token = 1;
+}
+
+message GetSessionByIdRequest {
+  string id = 1;
+  string userIdentifier = 2;
+}
+
+message SessionByIdResponse {
+  bool status = 1;
+  string platformType = 2;
+  string platformVersion = 3;
+  string appVersion = 4;
+}
+
+message UserOpenIdData {
+  string userIdentifier = 1;
+  string firstName = 2;
+  string lastName = 3;
+  string gender = 4;
+  string birthDay = 5;
+  string rnokpp = 6;
+  optional string email = 7;
+  optional string givenName = 8;
+  optional string phoneNumber = 9;
+  optional string unzr = 10;
+}
+
+message RemoveTokensByUserIdentifierRequest {
+  string userIdentifier = 1;
+  string sessionType = 2;
+}

@@ -1,0 +1,64 @@
+{
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "plugins": ["@typescript-eslint"],
+    "extends": ["airbnb-typescript/base", "plugin:@typescript-eslint/recommended"],
+    "parserOptions": {
+        "ecmaVersion": 2017,
+        "project": "./tsconfig-test.json"
+    },
+    "rules": {
+        "max-len": ["error", 140],
+        "linebreak-style": ["error", "unix"],
+        "class-methods-use-this": "off",
+        "comma-dangle": [
+            "error",
+            {
+                "arrays": "never",
+                "objects": "never",
+                "imports": "never",
+                "exports": "never",
+                "functions": "never"
+            }
+        ],
+        "no-duplicate-imports": "error",
+        "no-redeclare": "error",
+        "no-trailing-spaces": "error",
+        "space-before-blocks": "error",
+        "space-infix-ops": "error",
+        "import/prefer-default-export": "off",
+        "newline-before-return": ["error"],
+        "no-cond-assign": ["error", "always"],
+        "no-console": "error",
+        "lines-between-class-members": "off",
+        "padding-line-between-statements": [
+            "error",
+            { "blankLine": "always", "prev": "*", "next": "return" },
+            { "blankLine": "always", "prev": ["const", "let", "var"], "next": "*" },
+            { "blankLine": "any", "prev": ["const", "let", "var"], "next": ["const", "let", "var"] }
+        ],
+        "@typescript-eslint/consistent-type-assertions": [
+            "error",
+            {
+                "assertionStyle": "angle-bracket"
+            }
+        ],
+        "@typescript-eslint/indent": ["error", 4],
+        "@typescript-eslint/quotes": ["error", "single"],
+        "@typescript-eslint/semi": ["error", "always"],
+        "@typescript-eslint/typedef": [
+            "error",
+            {
+                "arrayDestructuring": true,
+                "arrowParameter": true,
+                "memberVariableDeclaration": true,
+                "objectDestructuring": false,
+                "parameter": true,
+                "propertyDeclaration": true,
+                "variableDeclaration": true
+            }
+        ],
+        "@typescript-eslint/explicit-function-return-type": ["error"],
+        "@typescript-eslint/no-throw-literal": "off"
+    }
+}

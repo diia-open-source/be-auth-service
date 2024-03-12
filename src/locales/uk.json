@@ -1,0 +1,46 @@
+{
+    "authUrl": {
+        "v3": {
+            "face-recognition": {
+                "iOS": {
+                    "face_recognition_no_face_in_frame": "Не знайдено обличчя у кадрі",
+                    "face_recognition_multiple_persons": "Знайдено більше одного обличчя у кадрі",
+                    "face_recognition_small_face": "Піднесіть телефон ближче до обличчя",
+                    "face_recognition_not_centered": "Наведіть рамку на обличчя",
+                    "face_recognition_incorrect_angle": "Подивіться прямо у камеру",
+                    "face_recognition_check_brightness": "Перевірте освітлення",
+                    "face_recognition_incorrect_depth": "Залишайтесь у рамці. Ми перевіряємо, що це ви",
+                    "face_recognition_blink_action": "Кліпніть"
+                },
+                "Android": {
+                    "face_recognition_message_blink": "<b>Кліпніть</b> декілька разів",
+                    "face_recognition_message_smile": "Посміхніться",
+                    "face_recognition_message_look_forward": "Подивіться в камеру",
+                    "face_recognition_message_face_forward": "Тримайте обличчя рівно",
+                    "face_recognition_message_loading": "Завантаження…",
+                    "face_recognition_message_not_enough_light": "Недостатньо світла",
+                    "face_recognition_message_too_much_light": "Обличчя засвічене",
+                    "face_recognition_message_take_phone_aligned_to_head": "Тримайте телефон вертикально на рівні очей",
+                    "face_recognition_message_looks_like_cheater": "Не вдалося вас розпізнати",
+                    "face_recognition_message_more_than_one_face_in_frame": "Більше однієї людини в кадрі",
+                    "face_recognition_message_look_strait_to_camera": "Дивіться прямо в камеру",
+                    "face_recognition_message_checking_you_are_real_person": "Перевірка…",
+                    "face_recognition_message_complete": "Ви впорались!",
+                    "face_recognition_need_face_closer": "Наблизьте камеру до обличчя",
+                    "face_recognition_face_too_close": "Занадто близько",
+                    "face_recognition_adjust_face": "Наведіть рамку на обличчя"
+                }
+            }
+        }
+    },
+    "sessionWithActions": {
+        "action": {
+            "sharing": {
+                "name": "Запити на копії цифрових документів"
+            },
+            "signing": {
+                "name": "Дія.Підпис"
+            }
+        }
+    }
+}

@@ -1,0 +1,20 @@
+{
+    "extends": "../tsconfig",
+    "include": ["./**/*"],
+    "compilerOptions": {
+        "noEmit": true,
+        "baseUrl": "../",
+        "paths": {
+            "@services/*": ["src/services/*"],
+            "@providers/*": ["src/providers/*"],
+            "@interfaces/*": ["src/interfaces/*"],
+            "@models/*": ["src/models/*"],
+            "@dataMappers/*": ["src/dataMappers/*"],
+            "@actions/*": ["src/actions/*"],
+            "@generated/*": ["src/generated/*"],
+            "@src/*": ["src/*"],
+            "@tests/*": ["tests/*"],
+            "@mocks/*": ["tests/mocks/*"]
+        }
+    }
+}

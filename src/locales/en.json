@@ -1,0 +1,46 @@
+{
+    "authUrl": {
+        "v3": {
+            "face-recognition": {
+                "iOS": {
+                    "face_recognition_no_face_in_frame": "No face found",
+                    "face_recognition_multiple_persons": "More than one face found in frame",
+                    "face_recognition_small_face": "Bring the device closer to your face",
+                    "face_recognition_not_centered": "Position your face in the frame",
+                    "face_recognition_incorrect_angle": "Look in the camera",
+                    "face_recognition_check_brightness": "Check the lighting",
+                    "face_recognition_incorrect_depth": "Keep your face in the frame. Recognition in progress…",
+                    "face_recognition_blink_action": "Blink"
+                },
+                "Android": {
+                    "face_recognition_message_blink": "<b>Blink</b> couple times",
+                    "face_recognition_message_smile": "Smile",
+                    "face_recognition_message_look_forward": "Look in the camera",
+                    "face_recognition_message_face_forward": "Keep your face straight",
+                    "face_recognition_message_loading": "Loading…",
+                    "face_recognition_message_not_enough_light": "Check the lighting",
+                    "face_recognition_message_too_much_light": "Illuminated face",
+                    "face_recognition_message_take_phone_aligned_to_head": "Hold your device vertically at eye level",
+                    "face_recognition_message_looks_like_cheater": "Face recognition failed",
+                    "face_recognition_message_more_than_one_face_in_frame": "More than one face found in frame",
+                    "face_recognition_message_look_strait_to_camera": "Look straight to the camera",
+                    "face_recognition_message_checking_you_are_real_person": "Recognition in progress…",
+                    "face_recognition_message_complete": "We got it!",
+                    "face_recognition_need_face_closer": "Bring the device closer to your face",
+                    "face_recognition_face_too_close": "Too close",
+                    "face_recognition_adjust_face": "Position your face in the frame"
+                }
+            }
+        }
+    },
+    "sessionWithActions": {
+        "action": {
+            "sharing": {
+                "name": "Digital documents requests"
+            },
+            "signing": {
+                "name": "e-Signature"
+            }
+        }
+    }
+}
