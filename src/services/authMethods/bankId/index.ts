@@ -74,11 +74,12 @@ export default class BankIdProvider implements AuthProviderFactory {
         const state = uuid()
 
         const { bankIdVersion, datasetInUse } = this.config.bankId
+        const baseUrl = `https://${host}${path}?response_type=code&client_id=${clientId}&state=${state}&bank_id=${bankId}`
         switch (bankIdVersion) {
             case BankIdVersion.V1:
-                return `https://${host}${path}?response_type=code&client_id=${clientId}&state=${state}&bank_id=${bankId}`
+                return baseUrl
             case BankIdVersion.V2:
-                return `https://${host}${path}?response_type=code&client_id=${clientId}&state=${state}&bank_id=${bankId}&dataset=${datasetInUse}`
+                return `${baseUrl}&dataset=${datasetInUse}`
             default: {
                 const unhandledBankIdVersion: never = bankIdVersion
 
