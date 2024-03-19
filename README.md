@@ -26,7 +26,7 @@ This repository contains the service which provides authorization functionality 
 Example:
 
 ```
-git clone https://github.com/diia-open-source/auth-service.git
+git clone https://github.com/diia-open-source/be-auth-service.git auth-service
 ```
 
 ---

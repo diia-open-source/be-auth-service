@@ -1,3 +1,5 @@
+import { randomInt } from 'crypto'
+
 import moment from 'moment'
 
 import { IdentifierService } from '@diia-inhouse/crypto'
@@ -121,10 +123,7 @@ export default class Utils {
         return age
     }
 
-    generateOtp(otpLength: number): string {
-        const min = parseInt(new Array(otpLength).fill('1').join(''), 10)
-        const max = parseInt(new Array(otpLength).fill('9').join(''), 10)
-
-        return String(Math.floor(Math.random() * (max - min) + min))
+    generateOtp(length: number): string {
+        return Array.from({ length }, () => randomInt(0, 10)).join('')
     }
 }
