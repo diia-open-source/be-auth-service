@@ -87,10 +87,6 @@ export default class Utils {
             return AuthDocumentType.ForeignPassport
         }
 
-        if (type === BankIdDocumentType.Ident) {
-            return this.getDocumentType(value)
-        }
-
         return this.getDocumentType(value)
     }
 
