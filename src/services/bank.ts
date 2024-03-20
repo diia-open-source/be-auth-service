@@ -69,44 +69,28 @@ export default class BankService implements OnInit {
         return banks.map((bank) => this.bankDataMapper.toEntity(bank))
     }
 
-    async getBankName(bankId: string): Promise<string> {
-        const bankJson = await this.store.get(this.prepareCacheKey(bankId))
+    private async fetchBankData(bankId: string): Promise<Bank | null> {
+        const bankJson = await this.store.get(this.prepareCacheKey(bankId));
         if (!bankJson) {
-            this.logger.error(`Failed to find bank by bankId [${bankId}]`)
-
-            return ''
+            this.logger.error(`Failed to find bank by bankId [${bankId}]`);
+            return null;
         }
+        return JSON.parse(bankJson);
+    }
 
-        const bank: Bank = JSON.parse(bankJson)
-
-        return bank.name
+    async getBankName(bankId: string): Promise<string> {
+        const bank = await this.fetchBankData(bankId)
+        return bank?.name ?? ''
     }
 
     async getBankMemberId(bankId: string): Promise<string> {
-        const bankJson = await this.store.get(this.prepareCacheKey(bankId))
-        if (!bankJson) {
-            this.logger.error(`Failed to find bank by bankId [${bankId}]`)
-
-            return ''
-        }
-
-        const bank: Bank = JSON.parse(bankJson)
-
-        return bank.memberId
+        const bank = await this.fetchBankData(bankId)
+        return bank?.memberId ?? ''
     }
 
     async isBankWorkable(bankId: string): Promise<boolean> {
-        const bankJson = await this.store.get(this.prepareCacheKey(bankId))
-
-        if (!bankJson) {
-            this.logger.error(`Failed to find bank by bankId [${bankId}]`)
-
-            return false
-        }
-
-        const bank: Bank = JSON.parse(bankJson)
-
-        return bank && bank.workable
+        const bank = await this.fetchBankData(bankId);
+        return bank?.workable ?? false;
     }
 
     private async countAllWorkable(): Promise<number> {
