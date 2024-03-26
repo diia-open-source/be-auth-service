@@ -1,5 +1,5 @@
 import { FilterQuery, UpdateQuery } from 'mongoose'
-import { v4 as uuid } from 'uuid'
+import { randomUUID as uuid } from 'node:crypto'
 
 import { AccessDeniedError, BadRequestError, InternalServerError, ModelNotFoundError, UnprocessableEntityError } from '@diia-inhouse/errors'
 import {

@@ -1,6 +1,6 @@
 import { ParsedUrlQueryInput } from 'querystring'
 
-import { v4 as uuid } from 'uuid'
+import { randomUUID as uuid } from 'node:crypto'
 
 import { BankIdCryptoServiceClient } from '@diia-inhouse/diia-crypto-client'
 import { AccessDeniedError, BadRequestError, ServiceUnavailableError, UnauthorizedError } from '@diia-inhouse/errors'

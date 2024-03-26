@@ -1,4 +1,4 @@
-import { v4 } from 'uuid'
+import { randomUUID as uuid } from 'node:crypto'
 
 import { RefreshToken } from '@diia-inhouse/types'
 
@@ -7,7 +7,7 @@ export class GenerateRefreshTokenHelper {
 
     readonly expirationTime: number
 
-    constructor(lifetime: number, now: number = Date.now(), value: string = v4()) {
+    constructor(lifetime: number, now: number = Date.now(), value: string = uuid()) {
         this.expirationTime = now + lifetime
         this.value = value
     }

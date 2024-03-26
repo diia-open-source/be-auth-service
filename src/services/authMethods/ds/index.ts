@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid'
+import { randomUUID as uuid } from 'node:crypto'
 
 import { CryptoDocServiceClient, SignOwnerInfo } from '@diia-inhouse/diia-crypto-client'
 import { AccessDeniedError, BadRequestError } from '@diia-inhouse/errors'
@@ -27,7 +27,7 @@ export default class DsProvider implements AuthProviderFactory {
 
     async requestAuthorizationUrl(_: AuthUrlOps, headers: AuthProviderHeaders): Promise<string> {
         const deviceUuid = headers.mobileUid
-        const requestId: string = Buffer.from(uuidv4()).toString('base64')
+        const requestId: string = Buffer.from(uuid()).toString('base64')
         const { nonceCacheTtl } = this.config.auth.schema.schemaMap[AuthSchemaCode.CabinetAuthorization]
         const hashedRequestId = await this.generateHash(requestId)
         const deeplink = await this.getDeeplink(hashedRequestId)
