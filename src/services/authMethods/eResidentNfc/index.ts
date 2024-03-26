@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid'
+import { randomUUID as uuid } from 'node:crypto'
 
 import { AccessDeniedError, NotFoundError, UnauthorizedError } from '@diia-inhouse/errors'
 import { CacheService } from '@diia-inhouse/redis'
@@ -24,7 +24,7 @@ export default class EResidentNfcProvider implements AuthProviderFactory {
     private readonly requestIdExpiration = 900
 
     async requestAuthorizationUrl(_ops: AuthUrlOps, { mobileUid }: AuthProviderHeaders): Promise<string> {
-        const requestId = uuidv4()
+        const requestId = uuid()
         const cacheKey = this.getCacheKey(mobileUid)
 
         await this.cache.set(cacheKey, requestId, this.requestIdExpiration)
