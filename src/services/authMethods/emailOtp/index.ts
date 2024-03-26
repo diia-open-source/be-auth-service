@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid'
+import { randomUUID as uuid } from 'node:crypto'
 
 import { EnvService } from '@diia-inhouse/env'
 import { AccessDeniedError, BadRequestError, InternalServerError } from '@diia-inhouse/errors'
@@ -42,7 +42,7 @@ export default class EmailOtpProvider implements AuthProviderFactory {
         }
 
         const cacheKey = this.getCacheKey(mobileUid)
-        const requestId = uuidv4()
+        const requestId = uuid()
         const otp = this.isTestEmail(email) ? this.testOtp : this.appUtils.generateOtp(this.otpLength)
         const verificationData: VerificationData = { otp, email, requestId }
         const dataToCache = JSON.stringify(verificationData)
