@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid'
+import { randomUUID as uuid } from 'node:crypto'
 
 import { AnalyticsActionResult, AnalyticsService } from '@diia-inhouse/analytics'
 import { AccessDeniedError, BadRequestError, NotFoundError } from '@diia-inhouse/errors'
@@ -24,7 +24,7 @@ export default class NfcProvider implements AuthProviderFactory {
     private readonly host = this.config.nfc.authUrlHost
 
     async requestAuthorizationUrl(): Promise<string> {
-        const requestId = uuidv4()
+        const requestId = uuid()
 
         // todo persist this requestId ti reuse in authNfcSaveScanResult.ts
 
