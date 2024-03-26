@@ -1,5 +1,5 @@
 import { FilterQuery } from 'mongoose'
-import { v4 as uuid } from 'uuid'
+import { randomUUID as uuid } from 'node:crypto'
 
 import { MongoDBErrorCode } from '@diia-inhouse/db'
 import { ExternalEvent, ExternalEventBus } from '@diia-inhouse/diia-queue'
