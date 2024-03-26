@@ -1,4 +1,4 @@
-import { v4 as uuid } from 'uuid'
+import { randomUUID as uuid } from 'node:crypto'
 
 import { AuthEntryPoint, PlatformType, SessionType } from '@diia-inhouse/types'
 
