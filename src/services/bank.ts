@@ -49,7 +49,7 @@ export default class BankService implements OnInit {
 
         const bulkUpdateResult = await Promise.all(
             banks
-                .filter(({ workable }: BankIdResponse) => !!workable)
+                .filter(({ workable }: BankIdResponse) => Boolean(workable))
                 .map((item) => {
                     const { id } = item
                     const bank = this.bankDataMapper.mapBankIdResponseItem(item)
@@ -70,70 +70,51 @@ export default class BankService implements OnInit {
     }
 
     async getBankName(bankId: string): Promise<string> {
-        const bankJson = await this.store.get(this.prepareCacheKey(bankId))
-        if (!bankJson) {
-            this.logger.error(`Failed to find bank by bankId [${bankId}]`)
+        const bank = await this.fetchBankData(bankId)
 
-            return ''
-        }
-
-        const bank: Bank = JSON.parse(bankJson)
-
-        return bank.name
+        return bank?.name ?? ''
     }
 
     async getBankMemberId(bankId: string): Promise<string> {
-        const bankJson = await this.store.get(this.prepareCacheKey(bankId))
-        if (!bankJson) {
-            this.logger.error(`Failed to find bank by bankId [${bankId}]`)
+        const bank = await this.fetchBankData(bankId)
 
-            return ''
-        }
-
-        const bank: Bank = JSON.parse(bankJson)
-
-        return bank.memberId
+        return bank?.memberId ?? ''
     }
 
     async isBankWorkable(bankId: string): Promise<boolean> {
-        const bankJson = await this.store.get(this.prepareCacheKey(bankId))
+        const bank = await this.fetchBankData(bankId)
 
-        if (!bankJson) {
-            this.logger.error(`Failed to find bank by bankId [${bankId}]`)
-
-            return false
-        }
-
-        const bank: Bank = JSON.parse(bankJson)
-
-        return bank && bank.workable
+        return bank?.workable ?? false
     }
 
     private async countAllWorkable(): Promise<number> {
-        return (await this.getAllWorkable()).length
+        const allWorkable = await this.getAllWorkable()
+
+        return allWorkable.length
     }
 
     private async getAllWorkable(): Promise<Bank[]> {
         const keys = await this.store.keys(`${this.cacheKey}.*`)
-        if (!keys.length) {
+        if (keys.length === 0) {
             this.logger.error('Failed to find bank keys')
 
             return []
         }
 
         const banksJson = await this.store.mget(...keys)
-        if (!banksJson.length) {
+        if (banksJson.length === 0) {
             this.logger.error('Failed to find banks by keys')
 
             return []
         }
 
         const banks: Bank[] = banksJson
+            // eslint-disable-next-line unicorn/prefer-native-coercion-functions
             .filter((bank): bank is NonNullable<typeof bank> => Boolean(bank))
-            .map((bankJson: string) => JSON.parse(bankJson))
-            .filter((bank: Bank) => !!bank.workable)
+            .map((bankJson) => JSON.parse(bankJson))
+            .filter((bank: Bank) => Boolean(bank.workable))
             .sort((bank: Bank, nextBank: Bank) => bank.sortOrder - nextBank.sortOrder)
-        if (!banks.length) {
+        if (banks.length === 0) {
             this.logger.error('Failed to find workable banks in list', { banks })
 
             return []
@@ -169,5 +150,16 @@ export default class BankService implements OnInit {
         this.logger.debug('Bank list from BankID', response.data)
 
         return response.data
+    }
+
+    private async fetchBankData(bankId: string): Promise<Bank | null> {
+        const bankJson = await this.store.get(this.prepareCacheKey(bankId))
+        if (!bankJson) {
+            this.logger.error(`Failed to find bank by bankId [${bankId}]`)
+
+            return null
+        }
+
+        return JSON.parse(bankJson)
     }
 }

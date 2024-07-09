@@ -2,9 +2,11 @@ import { cloneDeep, merge, set } from 'lodash'
 
 import { AnalyticsActionResult } from '@diia-inhouse/analytics'
 import { AuthService as AuthCryptoService, IdentifierOps, IdentifierService } from '@diia-inhouse/crypto'
+import { EventBus } from '@diia-inhouse/diia-queue'
 import { AccessDeniedError, BadRequestError, UnauthorizedError } from '@diia-inhouse/errors'
 import {
     AuthEntryPoint,
+    DurationMs,
     EResidentApplicant,
     IdentifierPrefix,
     Logger,
@@ -38,6 +40,7 @@ import UserAuthStepsAuthDataService from '@services/userAuthSteps/authData'
 
 import UserDataMapper from '@dataMappers/userDataMapper'
 
+import { InternalEvent } from '@interfaces/application'
 import { AppConfig } from '@interfaces/config'
 import { AuthMethod, AuthSchemaCode } from '@interfaces/models/authSchema'
 import { ProcessCode } from '@interfaces/services'
@@ -82,6 +85,7 @@ export default class UserAuthTokenService {
         private readonly bankIdAuthRequestService: BankIdAuthRequestService,
         private readonly eisVerifierService: EisVerifierService,
         private readonly tokenExpirationService: TokenExpirationService,
+        private readonly eventBus: EventBus,
 
         private readonly userDataMapper: UserDataMapper,
     ) {}
@@ -108,8 +112,6 @@ export default class UserAuthTokenService {
         [SessionType.EResident]: this.getUserToken.bind(this),
         [SessionType.EResidentApplicant]: this.getEResidentApplicantToken.bind(this),
     }
-
-    private readonly eResidentRegistry = this.config.eResident.registryIsEnabled
 
     async getToken(params: GetTokenParams): Promise<GenerateTokenResult> {
         const { requestId, method, headers, sessionType } = params
@@ -158,7 +160,7 @@ export default class UserAuthTokenService {
 
         await this.sendAuthNotification(tokenData, mobileUid, this.messageTemplateCodeBySessionType[sessionType])
 
-        if (this.eResidentRegistry && method === AuthMethod.EResidentQrCode) {
+        if (this.config.eResident.registryIsEnabled && method === AuthMethod.EResidentQrCode) {
             await this.eResidentFirstAuthService.confirmAuth(user.itn, mobileUid)
         }
 
@@ -226,7 +228,11 @@ export default class UserAuthTokenService {
             const sessions: Session[] = await this.sessionService.getSessions(userIdentifier)
             const activeSessions: number = sessions.filter((session) => session.status).length
             if (activeSessions > 1) {
-                await this.notificationService.createNotificationWithPushes(userIdentifier, templateCode, sessionId, [mobileUid])
+                await this.eventBus.publish(
+                    InternalEvent.NotifyWithPushes,
+                    { userIdentifier, templateCode, resourceId: sessionId, excludedMobileUids: [mobileUid] },
+                    { publishTimeout: DurationMs.Second, throwOnPublishTimeout: false },
+                )
             }
         } catch (err) {
             this.logger.fatal('Failed to create notification with pushes', { err })
@@ -316,7 +322,7 @@ export default class UserAuthTokenService {
         const token = await this.auth.getJweInJwt({ ...user, refreshToken: newRefreshToken })
 
         this.tokenCacheService
-            .revokeRefreshToken(refreshTokenValue, this.tokenExpirationService.revocationExpiration(user.sessionType, tokenExp))
+            .revokeRefreshToken(refreshTokenValue, this.tokenExpirationService.revocationExpiration(sessionType, tokenExp))
             .catch((err) => this.logger.fatal('Failed to remove token from cache', err))
 
         return token
@@ -428,10 +434,10 @@ export default class UserAuthTokenService {
 
         this.logger.info('User is received, start validation')
         const { itn, fName } = user
-        const isValid = !!(itn && fName)
+        const areFieldsPresented = itn && fName
         // && user.lName && user.birthDay; commented, because not all banks from BankId return all necessary data
 
-        if (!isValid) {
+        if (!areFieldsPresented) {
             throw new UnauthorizedError()
         }
 
@@ -440,7 +446,7 @@ export default class UserAuthTokenService {
 
     private async getCustomCoreAuthService(customTokenSignOptions?: Record<string, unknown>): Promise<AuthCryptoService> {
         if (!this.customCoreAuthService) {
-            const temporaryTokenSignOptions = this.config.auth.temporaryTokenSignOptions
+            const temporaryTokenSignOptions = this.config.authService.temporaryTokenSignOptions
             if (customTokenSignOptions) {
                 Object.assign(temporaryTokenSignOptions, customTokenSignOptions)
             }
@@ -527,7 +533,7 @@ export default class UserAuthTokenService {
         const { mobileUid } = headers
 
         if ([SessionType.User, SessionType.CabinetUser].includes(sessionType)) {
-            await this.eisVerifierService.verify(user.itn, headers)
+            await this.eisVerifierService.verify(itn, headers)
         }
 
         const refreshToken: RefreshToken = await this.createRefreshToken(identifier, headers, authEntryPoint, sessionType)
@@ -576,7 +582,7 @@ export default class UserAuthTokenService {
             sessionType,
         }
 
-        const token = await this.createToken(identifier, headers, tokenData, sessionType, undefined)
+        const token = await this.createToken(identifier, headers, tokenData, sessionType)
 
         return { identifier, tokenData, token }
     }
@@ -606,7 +612,7 @@ export default class UserAuthTokenService {
         headers: UserActionHeaders,
         tokenData: AuthUser,
         sessionType: AuthUserSessionType,
-        validBirthday: string | undefined,
+        validBirthday?: string,
     ): Promise<string> {
         const { mobileUid } = headers
         const tasks = [this.notificationService.assignUserToPushToken(mobileUid, userIdentifier)]

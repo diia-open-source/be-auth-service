@@ -9,7 +9,7 @@ jest.mock('uuid', () => {
     }
 })
 
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 
 import { IdentifierService } from '@diia-inhouse/crypto'
 import TestKit, { mockInstance } from '@diia-inhouse/test'
@@ -39,7 +39,7 @@ describe('CabinetAuthorizationStrategyService', () => {
         userAuthTokenService,
     )
     const { user } = testKit.session.getUserSession()
-    const { identifier } = user
+    const { identifier, itn } = user
     const headers = testKit.session.getHeaders()
     const requestId = randomUUID()
     const processId = randomUUID()
@@ -64,7 +64,7 @@ describe('CabinetAuthorizationStrategyService', () => {
                     uuidv5.mockReturnValueOnce(deviceUuid)
                 },
                 (): void => {
-                    expect(uuidv5).toHaveBeenCalledWith(user.itn, headers.mobileUid)
+                    expect(uuidv5).toHaveBeenCalledWith(itn, headers.mobileUid)
                     expect(authDataService.saveAuthorizationData).toHaveBeenCalledWith({
                         attachUserIdentifier: true,
                         code: AuthSchemaCode.CabinetAuthorization,
@@ -98,7 +98,7 @@ describe('CabinetAuthorizationStrategyService', () => {
                     uuidv5.mockReturnValueOnce(deviceUuid)
                 },
                 (): void => {
-                    expect(uuidv5).toHaveBeenCalledWith(user.itn, headers.mobileUid)
+                    expect(uuidv5).toHaveBeenCalledWith(itn, headers.mobileUid)
                     expect(authDataService.saveAuthorizationData).toHaveBeenCalledWith({
                         attachUserIdentifier: true,
                         code: AuthSchemaCode.CabinetAuthorization,
@@ -131,7 +131,7 @@ describe('CabinetAuthorizationStrategyService', () => {
                     uuidv5.mockReturnValueOnce(deviceUuid)
                 },
                 (): void => {
-                    expect(uuidv5).toHaveBeenCalledWith(user.itn, headers.mobileUid)
+                    expect(uuidv5).toHaveBeenCalledWith(itn, headers.mobileUid)
                     expect(authDataService.saveAuthorizationData).toHaveBeenCalledWith({
                         attachUserIdentifier: true,
                         code: AuthSchemaCode.CabinetAuthorization,
@@ -158,7 +158,6 @@ describe('CabinetAuthorizationStrategyService', () => {
                 const {
                     authMethodParams: { bankId, qesPayload },
                 } = options
-                const { itn } = user
 
                 defineStubs()
                 jest.spyOn(userAuthTokenService, 'prepareUserData').mockResolvedValueOnce(user)

@@ -1,9 +1,9 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 
 import DiiaLogger from '@diia-inhouse/diia-logger'
 import { AccessDeniedError, BadRequestError } from '@diia-inhouse/errors'
 import TestKit, { mockInstance } from '@diia-inhouse/test'
-import { DocumentType, SessionType } from '@diia-inhouse/types'
+import { SessionType } from '@diia-inhouse/types'
 
 import UserService from '@services/user'
 import AuthDataService from '@services/userAuthSteps/authData'
@@ -16,6 +16,7 @@ import userAuthSteps from '@models/userAuthSteps'
 import { AuthMethod, AuthSchemaCode, AuthSchemaCondition } from '@interfaces/models/authSchema'
 import { UserAuthStep, UserAuthStepsStatus } from '@interfaces/models/userAuthSteps'
 import { ProcessCode } from '@interfaces/services'
+import { DocumentType } from '@interfaces/services/documents'
 import { AuthStrategyVerifyOptions } from '@interfaces/services/userAuthSteps'
 
 describe('ProlongStrategyService', () => {

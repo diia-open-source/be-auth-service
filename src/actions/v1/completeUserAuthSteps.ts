@@ -1,12 +1,11 @@
 import { GrpcAppAction } from '@diia-inhouse/diia-app'
 
-import { ActionVersion, PublicServiceKebabCaseCode, SessionType } from '@diia-inhouse/types'
+import { ActionVersion, SessionType } from '@diia-inhouse/types'
 import { ValidationSchema } from '@diia-inhouse/validators'
 
 import UserAuthStepsService from '@services/userAuthSteps'
 
 import { ActionResult, CustomActionArguments } from '@interfaces/actions/v1/completeUserAuthSteps'
-import { AuthSchemaCode } from '@interfaces/models/authSchema'
 import { SchemaCode } from '@interfaces/services/userAuthSteps'
 
 export default class CompleteUserAuthStepsAction implements GrpcAppAction {
@@ -19,7 +18,7 @@ export default class CompleteUserAuthStepsAction implements GrpcAppAction {
     readonly name = 'completeUserAuthSteps'
 
     readonly validationRules: ValidationSchema<CustomActionArguments['params']> = {
-        schemaCode: { type: 'string', enum: [...Object.values(AuthSchemaCode), ...Object.values(PublicServiceKebabCaseCode)] },
+        schemaCode: { type: 'string' },
         processId: { type: 'string' },
     }
 

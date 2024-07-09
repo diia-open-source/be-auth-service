@@ -1,10 +1,9 @@
 import { v4 as uuid } from 'uuid'
 
-import { DocumentType } from '@diia-inhouse/types'
-
 import FaceRecoAuthPhotoVerificationEventListener from '@src/externalEventListeners/faceRecoAuthPhotoVerification'
 
 import { EventPayload } from '@interfaces/externalEventListeners/faceRecoAuthPhotoVerification'
+import { DocumentType } from '@interfaces/services/documents'
 
 export default class FaceRecoAuthPhotoVerificationEventMock {
     constructor(private readonly faceRecoAuthPhotoVerificationExternalEventListener: FaceRecoAuthPhotoVerificationEventListener) {}

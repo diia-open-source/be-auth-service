@@ -1,7 +1,6 @@
-import { ObjectId } from 'bson'
-
 import { MoleculerService } from '@diia-inhouse/diia-app'
 
+import { mongo } from '@diia-inhouse/db'
 import { ActionVersion, SessionType } from '@diia-inhouse/types'
 
 import { AppConfig } from '@interfaces/config'
@@ -20,7 +19,7 @@ export default class DocumentAcquirersService {
 
     private readonly serviceName: string = 'DocumentAcquirers'
 
-    async getAcquirerIdByToken(acquirerToken: string): Promise<ObjectId> {
+    async getAcquirerIdByToken(acquirerToken: string): Promise<mongo.ObjectId> {
         return await this.moleculer.act(
             this.serviceName,
             { name: 'getAcquirerIdByToken', actionVersion: ActionVersion.V1 },
@@ -28,7 +27,7 @@ export default class DocumentAcquirersService {
         )
     }
 
-    async getAcquirerIdByHashId(acquirerHashId: string, partnerId: ObjectId): Promise<GetAcquirerIdByHashIdResult> {
+    async getAcquirerIdByHashId(acquirerHashId: string, partnerId: mongo.ObjectId): Promise<GetAcquirerIdByHashIdResult> {
         return await this.moleculer.act(
             this.serviceName,
             { name: 'getAcquirerIdByHashId', actionVersion: ActionVersion.V1 },
@@ -45,7 +44,7 @@ export default class DocumentAcquirersService {
     }
 
     async createOfferRequest(requestId: string): Promise<CreateOfferRequestResult> {
-        const { acquirerToken, branchId, offerId } = this.config.auth.diiaSignature
+        const { acquirerToken, branchId, offerId } = this.config.authService.diiaSignature
         const acquirerId = await this.getAcquirerIdByToken(acquirerToken)
 
         return await this.moleculer.act(

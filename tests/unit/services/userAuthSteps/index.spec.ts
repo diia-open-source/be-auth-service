@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 
 const uuidV4Stub = jest.fn()
 const diiaUtilsMock = {
@@ -8,12 +8,10 @@ const diiaUtilsMock = {
 jest.mock('uuid', () => ({ v4: uuidV4Stub }))
 jest.mock('@diia-inhouse/utils', () => ({ utils: diiaUtilsMock }))
 
-import { UpdateWriteOpResult } from 'mongoose'
-
+import { UpdateWriteOpResult } from '@diia-inhouse/db'
 import DiiaLogger from '@diia-inhouse/diia-logger'
 import { AccessDeniedError, ApiError, BadRequestError, InternalServerError, ModelNotFoundError } from '@diia-inhouse/errors'
 import TestKit, { mockInstance } from '@diia-inhouse/test'
-import { DocumentType } from '@diia-inhouse/types'
 
 import AppUtils from '@src/utils'
 
@@ -51,23 +49,25 @@ import { AppConfig } from '@interfaces/config'
 import { AuthMethod, AuthSchema, AuthSchemaCode, AuthSchemaCondition } from '@interfaces/models/authSchema'
 import { UserAuthStepsModel, UserAuthStepsStatus } from '@interfaces/models/userAuthSteps'
 import { ProcessCode } from '@interfaces/services'
+import { DocumentType } from '@interfaces/services/documents'
 import { AuthMethodsResponse } from '@interfaces/services/userAuthSteps'
+
+const composeAuthSchema = (code: AuthSchemaCode, methods: AuthMethod[]): AuthSchema => ({
+    code,
+    title: 'Please authorize in the application.',
+    methods,
+    checks: [],
+    admitAfter: [],
+})
 
 describe('UserAuthStepsService', () => {
     const now = new Date()
     const config = <AppConfig>(<unknown>{
-        auth: {
+        authService: {
             schema: {
                 admissionStepsTtl: 18000,
             },
         },
-    })
-    const composeAuthSchema = (code: AuthSchemaCode, methods: AuthMethod[]): AuthSchema => ({
-        code,
-        title: 'Please authorize in the application.',
-        methods,
-        checks: [],
-        admitAfter: [],
     })
     const testKit = new TestKit()
     const logger = mockInstance(DiiaLogger)
@@ -345,7 +345,7 @@ describe('UserAuthStepsService', () => {
 
         it('should fail with error in case user is mandatory by auth strategy but is not provided', async () => {
             await expect(async () => {
-                await userAuthStepsService.getAuthMethods(AuthSchemaCode.Prolong, headers, processId, undefined)
+                await userAuthStepsService.getAuthMethods(AuthSchemaCode.Prolong, headers, processId)
             }).rejects.toEqual(new BadRequestError('User is not provided'))
         })
 
@@ -353,7 +353,7 @@ describe('UserAuthStepsService', () => {
             const unsupportedCode = <AuthSchemaCode>'unsupported-code'
 
             await expect(async () => {
-                await userAuthStepsService.getAuthMethods(unsupportedCode, headers, processId, undefined)
+                await userAuthStepsService.getAuthMethods(unsupportedCode, headers, processId)
             }).rejects.toEqual(new BadRequestError(`Unsupported schema code: ${unsupportedCode}`))
         })
 
@@ -1226,7 +1226,7 @@ describe('UserAuthStepsService', () => {
                 admitAfter: [{ code: AuthSchemaCode.Authorization }],
             })
             const {
-                auth: {
+                authService: {
                     schema: { admissionStepsTtl },
                 },
             } = config

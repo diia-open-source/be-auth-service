@@ -1,10 +1,10 @@
-import { randomUUID } from 'crypto'
+/* eslint-disable unicorn/consistent-destructuring */
+import { randomUUID } from 'node:crypto'
 
 import { CryptoService } from '@diia-inhouse/crypto'
 import DiiaLogger from '@diia-inhouse/diia-logger'
 import { BadRequestError } from '@diia-inhouse/errors'
 import TestKit, { mockInstance } from '@diia-inhouse/test'
-import { DocumentType, DocumentTypeCamelCase } from '@diia-inhouse/types'
 
 import AuthService from '@services/auth'
 import DocumentsService from '@services/documents'
@@ -20,6 +20,7 @@ import { UserAuthStep, UserAuthStepsStatus } from '@interfaces/models/userAuthSt
 import { ProcessCode } from '@interfaces/services'
 import { GenderAsSex } from '@interfaces/services/authMethods'
 import { NfcUserDTO } from '@interfaces/services/authMethods/nfc'
+import { DocumentType, DocumentTypeCamelCase } from '@interfaces/services/documents'
 import { MessageTemplateCode } from '@interfaces/services/notification'
 import { AuthStrategyVerifyOptions } from '@interfaces/services/userAuthSteps'
 

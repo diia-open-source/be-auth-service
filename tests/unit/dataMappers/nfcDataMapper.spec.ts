@@ -1,9 +1,8 @@
-import { DocumentTypeCamelCase } from '@diia-inhouse/types'
-
 import NfcDataMapper from '@dataMappers/nfcDataMapper'
 
 import { GenderAsSex } from '@interfaces/services/authMethods'
 import { NfcUserDTO } from '@interfaces/services/authMethods/nfc'
+import { DocumentTypeCamelCase } from '@interfaces/services/documents'
 
 describe('NfcDataMapper', () => {
     const mapper = new NfcDataMapper()

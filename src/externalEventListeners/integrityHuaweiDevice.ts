@@ -1,8 +1,9 @@
-import { EventBusListener, ExternalEvent } from '@diia-inhouse/diia-queue'
+import { EventBusListener } from '@diia-inhouse/diia-queue'
 import { ValidationSchema } from '@diia-inhouse/validators'
 
 import HuaweiIntegrityCheckService from '@services/integrity/huaweiCheck'
 
+import { ExternalEvent } from '@interfaces/application'
 import { EventPayload } from '@interfaces/externalEventListeners/integrityHuaweiDevice'
 
 export default class IntegrityHuaweiDeviceEventListener implements EventBusListener {

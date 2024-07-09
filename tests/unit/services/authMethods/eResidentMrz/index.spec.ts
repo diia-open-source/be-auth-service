@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 
 const uuidV4Stub = jest.fn()
 
@@ -14,7 +14,7 @@ import DocumentsService from '@services/documents'
 
 import { AuthMethod } from '@interfaces/models/authSchema'
 import { ProcessCode } from '@interfaces/services'
-import { EResidencyCountryInfo } from '@interfaces/services/documents'
+import { DocumentType, EResidency, EResidencyCountryInfo } from '@interfaces/services/documents'
 import { MrzPayload } from '@interfaces/services/userAuthSteps'
 
 describe('EResidentMrzProvider', () => {
@@ -54,7 +54,7 @@ describe('EResidentMrzProvider', () => {
             const { residenceCountry, docNumber } = mrzPayload
             const { mobileUid } = headers
             const { user } = testKit.session.getEResidentSession()
-            const eResidency = testKit.docs.getEResidency({
+            const eResidency = testKit.docs.generateDocument<EResidency>(DocumentType.EResidency, {
                 birthDate: user.birthDay,
                 email: user.email,
                 firstNameEN: user.fName,

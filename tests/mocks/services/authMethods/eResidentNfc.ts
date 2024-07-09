@@ -7,6 +7,7 @@ import RefreshTokenService from '@services/refreshToken'
 import { AuthMockProvider } from '@tests/interfaces/mocks/services/authMethods'
 
 import { NfcUserDTO } from '@interfaces/services/authMethods/nfc'
+import { DocumentType, EResidency } from '@interfaces/services/documents'
 
 export default class EResidentNfcMock implements AuthMockProvider {
     private testKit: TestKit
@@ -24,7 +25,7 @@ export default class EResidentNfcMock implements AuthMockProvider {
     }
 
     async getUserData(): Promise<void> {
-        const eResidencyData = this.testKit.docs.getEResidency()
+        const eResidencyData = this.testKit.docs.generateDocument<EResidency>(DocumentType.EResidency)
 
         jest.spyOn(this.documentsService, 'getEResidencyToProcess').mockImplementationOnce(async () => eResidencyData)
         jest.spyOn(this.nfcService, 'isUserPhotoVerified').mockImplementationOnce(async () => true)

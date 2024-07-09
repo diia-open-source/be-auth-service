@@ -33,7 +33,7 @@ describe(`${FakeBankLoginService.name}`, () => {
 
     describe('method: `getFakeDataToApply`', () => {
         it('should return undefined if appVersionParam not provided', async () => {
-            expect(await fakeBankLoginService.getFakeDataToApply(PlatformType.Android, undefined)).toBeUndefined()
+            expect(await fakeBankLoginService.getFakeDataToApply(PlatformType.Android)).toBeUndefined()
         })
 
         it('should return undefined if settings model not found', async () => {

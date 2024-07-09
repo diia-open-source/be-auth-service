@@ -1,4 +1,4 @@
-import { GetUserOpenIdDataRequest, UserOpenIdData } from '@generated/auth'
+import { GetUserOpenIdDataRequest, UserOpenIdData } from '@generated/auth-service'
 
 import { ServiceActionArguments } from '@diia-inhouse/types'
 

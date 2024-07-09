@@ -1,4 +1,4 @@
-import { Model, Schema, model, models } from 'mongoose'
+import { Model, Schema, model, models } from '@diia-inhouse/db'
 
 import { FaceRecoMatchedPhoto } from '@interfaces/externalEventListeners/faceRecoAuthPhotoVerification'
 import { PhotoIdAuthRequest } from '@interfaces/models/photoIdAuthRequest'

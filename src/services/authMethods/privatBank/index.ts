@@ -1,4 +1,4 @@
-import * as crypto from 'crypto'
+import * as crypto from 'node:crypto'
 
 import { HttpError, InternalServerError, ServiceUnavailableError, UnauthorizedError } from '@diia-inhouse/errors'
 import { HttpService, HttpServiceResponse } from '@diia-inhouse/http'
@@ -13,11 +13,14 @@ export default class PrivatBankProvider implements AuthProviderFactory {
         private readonly config: AppConfig,
         private readonly logger: Logger,
         private readonly httpsService: HttpService,
-    ) {}
+    ) {
+        this.serviceConfig = this.config.thirdParty.privatbank
+        this.integrationPointsTimeout = this.config.app.integrationPointsTimeout
+    }
 
-    readonly serviceConfig: PrivatbankConfig = this.config.thirdParty.privatbank
+    readonly serviceConfig: PrivatbankConfig
 
-    private readonly integrationPointsTimeout: number = this.config.app.integrationPointsTimeout
+    private readonly integrationPointsTimeout: number
 
     async requestAuthorizationUrl(): Promise<string> {
         const authPayload: Record<string, unknown> = this.getPayload('create_sid')

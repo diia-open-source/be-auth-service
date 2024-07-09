@@ -26,15 +26,20 @@ export default class EmailOtpProvider implements AuthProviderFactory {
         private readonly appUtils: Utils,
         private readonly notificationService: NotificationService,
         private readonly superGenService: SuperGenService,
-    ) {}
+    ) {
+        this.otpLength = this.config.eResident.otpLength
+        this.otpTtlInSeconds = this.config.eResident.otpTtlInSeconds
+        this.testOtp = this.config.eResident.testOtp
+        this.testEmailRegExp = this.config.eResident.testEmailRegExp
+    }
 
-    private readonly otpLength = this.config.eResident.otpLength
+    private readonly otpLength
 
-    private readonly otpTtlInSeconds = this.config.eResident.otpTtlInSeconds
+    private readonly otpTtlInSeconds
 
-    private readonly testOtp = this.config.eResident.testOtp
+    private readonly testOtp
 
-    private readonly testEmailRegExp = this.config.eResident.testEmailRegExp
+    private readonly testEmailRegExp
 
     async requestAuthorizationUrl({ email }: AuthUrlOps, { mobileUid }: AuthProviderHeaders): Promise<string> {
         if (!email) {

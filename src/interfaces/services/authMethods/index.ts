@@ -1,4 +1,4 @@
-import { EResidency, EResidentApplicant } from '@diia-inhouse/types'
+import { EResidentApplicant } from '@diia-inhouse/types'
 
 import { AuthSchemaCode } from '@interfaces/models/authSchema'
 import { AuthMethodVerifyParams, AuthProviderHeaders, AuthUrlOps } from '@interfaces/services/auth'
@@ -8,6 +8,7 @@ import { MonobankUserDTO } from '@interfaces/services/authMethods/monobank'
 import { NfcUserDTO } from '@interfaces/services/authMethods/nfc'
 import { PrivatBankUserDTO } from '@interfaces/services/authMethods/privatBank'
 import { QesUserDTO } from '@interfaces/services/authMethods/qes'
+import { EResidency } from '@interfaces/services/documents'
 
 export enum GenderAsSex {
     M = 'M',

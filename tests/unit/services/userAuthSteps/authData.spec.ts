@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 
 const userAuthStepsModelMock = {
     updateOne: jest.fn(),
@@ -23,7 +23,7 @@ import { GetUserTokenParams } from '@interfaces/services/userAuthToken'
 describe('AuthDataService', () => {
     const testKit = new TestKit()
     const config = {
-        auth: {
+        authService: {
             schema: {
                 schemaMap: {
                     [AuthSchemaCode.Authorization]: {
@@ -73,6 +73,19 @@ describe('AuthDataService', () => {
                 (): void => {
                     expect(logger.error).toHaveBeenCalledWith('Failed to get authorization cache data', {
                         err: new AccessDeniedError(),
+                        processId,
+                    })
+                },
+            ],
+            [
+                'unable to parse as JSON string',
+                new SyntaxError(`Unexpected token i in JSON at position 0`),
+                (): void => {
+                    jest.spyOn(cacheService, 'get').mockResolvedValueOnce('invalid-json-string')
+                },
+                (): void => {
+                    expect(logger.error).toHaveBeenCalledWith('Failed to get authorization cache data', {
+                        err: new SyntaxError(`Unexpected token i in JSON at position 0`),
                         processId,
                     })
                 },

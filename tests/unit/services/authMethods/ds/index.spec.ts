@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 
 const uuidV4Stub = jest.fn()
 
@@ -36,7 +36,7 @@ describe('DsProvider', () => {
 
         it('should successfully compose and return authorization url', async () => {
             const config = <AppConfig>(<unknown>{
-                auth: {
+                authService: {
                     schema: {
                         schemaMap: {
                             [AuthSchemaCode.CabinetAuthorization]: { nonceCacheTtl: 180000 },
@@ -73,7 +73,7 @@ describe('DsProvider', () => {
         it.each([
             [
                 'is not able to generate hashed requestId',
-                <AppConfig>(<unknown>{ auth: { schema: { schemaMap: { [AuthSchemaCode.CabinetAuthorization]: {} } } } }),
+                <AppConfig>(<unknown>{ authService: { schema: { schemaMap: { [AuthSchemaCode.CabinetAuthorization]: {} } } } }),
                 new BadRequestError('Generate hash failed'),
                 (): void => {
                     uuidV4Stub.mockReturnValueOnce(requestUuid)
@@ -89,7 +89,7 @@ describe('DsProvider', () => {
             ],
             [
                 'is not able to create offer request and get deeplink',
-                <AppConfig>(<unknown>{ auth: { schema: { schemaMap: { [AuthSchemaCode.CabinetAuthorization]: {} } } } }),
+                <AppConfig>(<unknown>{ authService: { schema: { schemaMap: { [AuthSchemaCode.CabinetAuthorization]: {} } } } }),
                 new AccessDeniedError(`Unable to get deeplink for requestId: ${hashedRequestId}`),
                 (): void => {
                     uuidV4Stub.mockReturnValueOnce(requestUuid)
@@ -109,7 +109,7 @@ describe('DsProvider', () => {
             ],
             [
                 'nonce ttl is not defined in configuration',
-                <AppConfig>(<unknown>{ auth: { schema: { schemaMap: { [AuthSchemaCode.CabinetAuthorization]: {} } } } }),
+                <AppConfig>(<unknown>{ authService: { schema: { schemaMap: { [AuthSchemaCode.CabinetAuthorization]: {} } } } }),
                 new BadRequestError('NonceTTL is not defined'),
                 (): void => {
                     uuidV4Stub.mockReturnValueOnce(requestUuid)

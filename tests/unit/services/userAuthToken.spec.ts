@@ -1,12 +1,12 @@
-import { ObjectId } from 'bson'
-
 import { AuthService as AuthCryptoService, IdentifierService } from '@diia-inhouse/crypto'
+import { mongo } from '@diia-inhouse/db'
 import DiiaLogger from '@diia-inhouse/diia-logger'
+import { EventBus } from '@diia-inhouse/diia-queue'
 import { AccessDeniedError, BadRequestError, UnauthorizedError } from '@diia-inhouse/errors'
 import TestKit, { mockInstance } from '@diia-inhouse/test'
 import {
     AuthDocumentType,
-    DocumentTypeCamelCase,
+    DurationMs,
     Gender,
     ServiceEntranceTokenData,
     ServiceUserTokenData,
@@ -36,11 +36,14 @@ import UserAuthTokenService from '@services/userAuthToken'
 
 import UserDataMapper from '@dataMappers/userDataMapper'
 
+import { InternalEvent } from '@interfaces/application'
 import { AppConfig } from '@interfaces/config'
 import { AuthMethod } from '@interfaces/models/authSchema'
 import { ProcessCode } from '@interfaces/services'
 import { GenderAsSex } from '@interfaces/services/authMethods'
 import { GetServiceEntranceDataByOtpResult } from '@interfaces/services/documentAcquirers'
+import { DocumentTypeCamelCase } from '@interfaces/services/documents'
+import { MessageTemplateCode } from '@interfaces/services/notification'
 import { AuthType } from '@interfaces/services/session'
 import { AuthUser, AuthUserSessionType, GetTokenParams } from '@interfaces/services/userAuthToken'
 
@@ -51,6 +54,13 @@ describe(`UserAuthTokenService`, () => {
             registryIsEnabled: true,
         },
         auth: {
+            jwt: {
+                tokenSignOptions: {
+                    expiresIn: DurationMs.Hour.toString(),
+                },
+            },
+        },
+        authService: {
             temporaryTokenSignOptions: {
                 algorithm: 'signAlgorithm',
                 expiresIn: '1m',
@@ -79,6 +89,7 @@ describe(`UserAuthTokenService`, () => {
     const eisVerifierServiceMock = mockInstance(EisVerifierService)
     const tokenExpirationService = mockInstance(TokenExpirationService)
     const userDataMapperMock = mockInstance(UserDataMapper)
+    const eventBusServiceMock = mockInstance(EventBus)
 
     const userAuthTokenService = new UserAuthTokenService(
         loggerServiceMock,
@@ -101,6 +112,7 @@ describe(`UserAuthTokenService`, () => {
         bankIdAuthRequestServiceMock,
         eisVerifierServiceMock,
         tokenExpirationService,
+        eventBusServiceMock,
         userDataMapperMock,
     )
 
@@ -541,7 +553,6 @@ describe(`UserAuthTokenService`, () => {
             jest.spyOn(notificationServiceMock, 'assignUserToPushToken').mockResolvedValueOnce()
             jest.spyOn(authCryptoServiceMock, 'getJweInJwt').mockResolvedValueOnce(token)
             jest.spyOn(sessionServiceMock, 'getSessions').mockResolvedValueOnce(sessions)
-            jest.spyOn(notificationServiceMock, 'createNotificationWithPushes').mockResolvedValueOnce()
 
             expect(await userAuthTokenService.getEResidentApplicantToken(params)).toMatchObject({ token, identifier, tokenData })
             expect(loggerServiceMock.debug).toHaveBeenCalledWith('User data to encrypt', params.user)
@@ -626,6 +637,51 @@ describe(`UserAuthTokenService`, () => {
             jest.spyOn(authCryptoServiceMock, 'getJweInJwt').mockResolvedValueOnce(token)
 
             expect(await userAuthTokenService.getNfcUserToken(headers)).toMatchObject(result)
+        })
+    })
+
+    describe('method: `sendAuthNotification`', () => {
+        it('should successfully execute method', async () => {
+            const userIdentifier = 'userIdentifier'
+            const mobileUid = 'mobileUid'
+            const sessionId = 'sessionId'
+
+            const templateCode = MessageTemplateCode.NewDeviceConnecting
+
+            jest.spyOn(identifierServiceMock, 'createIdentifier').mockReturnValueOnce(sessionId)
+            jest.spyOn(sessionServiceMock, 'getSessions').mockResolvedValueOnce([
+                {
+                    id: 'id1',
+                    status: true,
+                    platform: { type: 'string', version: 'string' },
+                    appVersion: 'string',
+                    auth: { type: AuthType.BankId, creationDate: 'string', lastActivityDate: 'string' },
+                },
+                {
+                    id: 'id2',
+                    status: true,
+                    platform: { type: 'string', version: 'string' },
+                    appVersion: 'string',
+                    auth: { type: AuthType.BankId, creationDate: 'string', lastActivityDate: 'string' },
+                },
+            ])
+
+            const eventBusSpy = jest.spyOn(eventBusServiceMock, 'publish').mockResolvedValueOnce(true)
+
+            await userAuthTokenService.sendAuthNotification(<AuthUser>{ identifier: userIdentifier }, mobileUid, templateCode)
+
+            expect(eventBusSpy).toHaveBeenCalledWith(
+                InternalEvent.NotifyWithPushes,
+                {
+                    userIdentifier,
+                    templateCode,
+                    resourceId: sessionId,
+                    excludedMobileUids: [mobileUid],
+                },
+                { publishTimeout: DurationMs.Second, throwOnPublishTimeout: false },
+            )
+
+            eventBusSpy.mockRestore()
         })
     })
 
@@ -758,7 +814,7 @@ describe(`UserAuthTokenService`, () => {
                 },
                 identifier: 'identifier',
                 sessionType: SessionType.ServiceEntrance,
-                acquirerId: new ObjectId(),
+                acquirerId: new mongo.ObjectId(),
                 branchHashId: 'branchHashId',
                 offerHashId: 'offerHashId',
                 offerRequestHashId: 'offerRequestHashId',
@@ -827,13 +883,6 @@ describe(`UserAuthTokenService`, () => {
             const token = 'token'
 
             const params = {
-                temporaryTokenSignOptions: {
-                    algorithm: 'signAlgorithm',
-                    expiresIn: '1m',
-                    audience: 'audience',
-                    issuer: 'issuer',
-                    jwtid: headers.mobileUid,
-                },
                 jwt: {
                     tokenSignOptions: {
                         algorithm: 'signAlgorithm',
@@ -851,6 +900,7 @@ describe(`UserAuthTokenService`, () => {
             jest.spyOn(nfcServiceMock, 'saveNfcVerificationRequest').mockResolvedValueOnce()
 
             expect(await userAuthTokenService.getTemporaryToken(headers)).toBe(token)
+            // AAAAAAAAA
             expect(authCryptoServiceMock.newInstance).toHaveBeenCalledWith(params, loggerServiceMock)
         })
     })
@@ -899,7 +949,7 @@ describe(`UserAuthTokenService`, () => {
 
             const serviceEntranceData = {
                 offerRequestExpiration: currentTime + 1,
-                acquirerId: new ObjectId(),
+                acquirerId: new mongo.ObjectId(),
                 branchHashId: 'branchHashId',
                 offerHashId: 'offerHashId',
                 offerRequestHashId: 'offerRequestHashId',

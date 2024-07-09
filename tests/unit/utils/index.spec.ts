@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 
 const mapLatin = jest.fn()
 const momentStubs: Record<string, jest.Mock> = {

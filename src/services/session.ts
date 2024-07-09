@@ -1,4 +1,4 @@
-import { SessionByIdResponse } from '@generated/auth'
+import { SessionByIdResponse } from '@generated/auth-service'
 
 import { IdentifierService } from '@diia-inhouse/crypto'
 import { BadRequestError, NotFoundError } from '@diia-inhouse/errors'
@@ -97,7 +97,7 @@ export default class SessionService {
 
     async deleteSessions(userIdentifier: string): Promise<void> {
         const refreshTokens = await this.refreshTokenService.getUserTokensByUserIdentifierToDelete(userIdentifier)
-        if (!refreshTokens.length) {
+        if (refreshTokens.length === 0) {
             throw new BadRequestError('No sessions to delete')
         }
 

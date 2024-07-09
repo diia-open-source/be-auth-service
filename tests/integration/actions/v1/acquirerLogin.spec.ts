@@ -1,7 +1,7 @@
-import { ObjectId } from 'bson'
 import { v4 as uuid } from 'uuid'
 
 import { AuthService } from '@diia-inhouse/crypto'
+import { mongo } from '@diia-inhouse/db'
 import { SessionType } from '@diia-inhouse/types'
 
 import AcquirerLoginAction from '@actions/v1/acquirerLogin'
@@ -24,10 +24,8 @@ describe(`Action ${AcquirerLoginAction.name}`, () => {
         app = await getApp()
         acquirerLoginAction = app.container.build(AcquirerLoginAction)
         documentAcquirersService = app.container.resolve('documentAcquirersService')
-        userSessionGenerator = new UserSessionGenerator(app.container.resolve('identifier'))
-        auth = app.container.resolve('auth')
-
-        await app.start()
+        userSessionGenerator = new UserSessionGenerator(app.container.resolve('identifier')!)
+        auth = app.container.resolve('auth')!
     })
 
     afterAll(async () => {
@@ -35,7 +33,7 @@ describe(`Action ${AcquirerLoginAction.name}`, () => {
     })
 
     it('should return token', async () => {
-        const acquirerId: ObjectId = new ObjectId()
+        const acquirerId = new mongo.ObjectId()
 
         jest.spyOn(documentAcquirersService, 'getAcquirerIdByToken').mockImplementationOnce(async () => acquirerId)
         const getJweInJwtSpy: jest.SpyInstance = jest.spyOn(auth, 'getJweInJwt')

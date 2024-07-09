@@ -59,7 +59,7 @@ describe('Service: VoteService', () => {
         })
 
         it('should catch error and log it', async () => {
-            const expectedError = new Error()
+            const expectedError = new Error('Test error')
 
             jest.spyOn(moleculerService, 'act').mockRejectedValueOnce(expectedError)
             const errorSpy = jest.spyOn(logger, 'error')

@@ -1,4 +1,4 @@
-import { CompleteUserAuthStepsRequest } from '@generated/auth'
+import { CompleteUserAuthStepsRequest } from '@generated/auth-service'
 
 import { UserActionArguments } from '@diia-inhouse/types'
 

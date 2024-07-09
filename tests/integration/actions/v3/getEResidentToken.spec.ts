@@ -45,12 +45,11 @@ describe(`Action ${GetEResidentTokenAction.name}`, () => {
         getEResidentTokenAction = app.container.build(GetEResidentTokenAction)
         getAuthMethodsAction = app.container.build(GetAuthMethodsAction)
         userAuthTokenService = app.container.resolve('userAuthTokenService')
-        identifier = app.container.resolve('identifier')
+        identifier = app.container.resolve('identifier')!
         notificationService = app.container.resolve('notificationService')
         userService = app.container.resolve('userService')
         testKit = app.container.resolve('testKit')
         authMethodMockFactory = new AuthMethodMockFactory(app)
-        await app.start()
     })
 
     afterAll(async () => {

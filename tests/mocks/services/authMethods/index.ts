@@ -24,26 +24,29 @@ import { AuthMethod } from '@interfaces/models/authSchema'
 export default class AuthMethodMockFactory {
     constructor(private readonly app: ServiceOperator<AppConfig, AppDeps>) {
         this.logger = app.container.resolve('logger')
+        this.providers = {
+            [AuthMethod.BankId]: this.app.container.build(BankIdAuthMethodMockService),
+            [AuthMethod.EmailOtp]: this.app.container.build(EmailOtpAuthMethodMockService),
+            [AuthMethod.EResidentMrz]: this.app.container.build(EResidentMrzAuthMethodMockService),
+            [AuthMethod.EResidentNfc]: this.app.container.build(EResidentNfcAuthMethodMockService),
+            [AuthMethod.Monobank]: this.app.container.build(MonobankAuthMethodMockService),
+            [AuthMethod.Nfc]: this.app.container.build(NfcAuthMethodMockService, {
+                injector: (c) => ({ invalidateTemporaryTokenAction: c.build(InvalidateTemporaryTokenAction) }),
+            }),
+            [AuthMethod.PhotoId]: this.app.container.build(PhotoIdAuthMethodMockService, {
+                injector: (c) => ({
+                    faceRecoAuthPhotoVerificationMockEventListener: c.build(FaceRecoAuthPhotoVerificationMockEventListener),
+                }),
+            }),
+            [AuthMethod.PrivatBank]: this.app.container.build(PrivatBankAuthMethodMockService),
+            [AuthMethod.EResidentQrCode]: null,
+            [AuthMethod.Qes]: null,
+        }
     }
 
     private readonly logger: Logger
 
-    private readonly providers: Partial<Record<AuthMethod, AuthMockProvider | null>> = {
-        [AuthMethod.BankId]: this.app.container.build(BankIdAuthMethodMockService),
-        [AuthMethod.EmailOtp]: this.app.container.build(EmailOtpAuthMethodMockService),
-        [AuthMethod.EResidentMrz]: this.app.container.build(EResidentMrzAuthMethodMockService),
-        [AuthMethod.EResidentNfc]: this.app.container.build(EResidentNfcAuthMethodMockService),
-        [AuthMethod.Monobank]: this.app.container.build(MonobankAuthMethodMockService),
-        [AuthMethod.Nfc]: this.app.container.build(NfcAuthMethodMockService, {
-            injector: (c) => ({ invalidateTemporaryTokenAction: c.build(InvalidateTemporaryTokenAction) }),
-        }),
-        [AuthMethod.PhotoId]: this.app.container.build(PhotoIdAuthMethodMockService, {
-            injector: (c) => ({ faceRecoAuthPhotoVerificationMockEventListener: c.build(FaceRecoAuthPhotoVerificationMockEventListener) }),
-        }),
-        [AuthMethod.PrivatBank]: this.app.container.build(PrivatBankAuthMethodMockService),
-        [AuthMethod.EResidentQrCode]: null,
-        [AuthMethod.Qes]: null,
-    }
+    private readonly providers: Partial<Record<AuthMethod, AuthMockProvider | null>>
 
     getAuthProvider(method: AuthMethod): AuthMockProvider {
         const authMethod = this.providers[method]

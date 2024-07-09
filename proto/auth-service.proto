@@ -17,6 +17,10 @@ service AuthService {
   rpc removeTokensByUserIdentifier (RemoveTokensByUserIdentifierRequest) returns (google.protobuf.Empty) {}
 }
 
+service AuthServicePrivate {
+  rpc GetLastRefreshToken (GetLastRefreshTokenReq) returns (GetLastRefreshTokenRes) {}
+}
+
 message CompleteUserAuthStepsRequest {
   string schemaCode = 1;
   string processId = 2;
@@ -54,4 +58,21 @@ message UserOpenIdData {
 message RemoveTokensByUserIdentifierRequest {
   string userIdentifier = 1;
   string sessionType = 2;
+}
+
+message GetLastRefreshTokenReq {
+  string mobileUid = 1;
+  string sessionType = 2;
+}
+
+message GetLastRefreshTokenRes {
+  string id = 1;
+  string value = 2;
+  uint32 expirationTime = 3;
+  optional string userIdentifier = 4;
+  optional string platformType = 5;
+  optional string platformVersion = 6;
+  optional string appVersion = 7;
+  optional string lastActivityDate = 8;
+  optional string expirationDate = 9;
 }

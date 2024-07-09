@@ -1,12 +1,11 @@
 import { AppAction } from '@diia-inhouse/diia-app'
 
-import { ActionVersion, PublicServiceKebabCaseCode, SessionType } from '@diia-inhouse/types'
+import { ActionVersion, SessionType } from '@diia-inhouse/types'
 import { ValidationSchema } from '@diia-inhouse/validators'
 
 import UserAuthStepsService from '@services/userAuthSteps'
 
 import { ActionResult, CustomActionArguments } from '@interfaces/actions/v3/getAuthMethods'
-import { AuthSchemaCode } from '@interfaces/models/authSchema'
 
 export default class GetAuthMethodsAction implements AppAction {
     constructor(private readonly userAuthStepsService: UserAuthStepsService) {}
@@ -18,7 +17,7 @@ export default class GetAuthMethodsAction implements AppAction {
     readonly name = 'getAuthMethods'
 
     readonly validationRules: ValidationSchema<CustomActionArguments['params']> = {
-        code: { type: 'string', enum: [...Object.values(AuthSchemaCode), ...Object.values(PublicServiceKebabCaseCode)] },
+        code: { type: 'string' },
         processId: { type: 'string', optional: true },
     }
 

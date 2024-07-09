@@ -53,7 +53,7 @@ export default class CabinetAuthorizationStrategyService implements AuthSchemaSt
             case AuthMethod.Ds:
             case AuthMethod.Qes: {
                 const tokenParams: GetTokenParams = {
-                    headers: { ...headers, mobileUid: uuidv5(userData.itn, headers.mobileUid) },
+                    headers: { ...headers, mobileUid: uuidv5(itn, headers.mobileUid) },
                     method,
                     requestId,
                     sessionType: SessionType.CabinetUser,

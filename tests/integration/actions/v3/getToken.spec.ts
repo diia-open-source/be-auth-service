@@ -1,7 +1,7 @@
 import { IdentifierService } from '@diia-inhouse/crypto'
 import { BankIdCryptoServiceClient } from '@diia-inhouse/diia-crypto-client'
 import { AccessDeniedError, ModelNotFoundError } from '@diia-inhouse/errors'
-import TestKit from '@diia-inhouse/test/*'
+import TestKit from '@diia-inhouse/test'
 import { SessionType, UserSession } from '@diia-inhouse/types'
 
 import VerifyAuthMethodAction from '@actions/v1/verifyAuthMethod'
@@ -23,7 +23,7 @@ import { BankIdDocumentType, BankIdUser } from '@interfaces/services/authMethods
 import { MessageTemplateCode } from '@interfaces/services/notification'
 
 describe(`Action ${GetTokenAction.name}`, () => {
-    const bankMethods: AuthMethod[] = [AuthMethod.BankId, AuthMethod.Monobank, AuthMethod.PrivatBank]
+    const bankMethods = new Set([AuthMethod.BankId, AuthMethod.Monobank, AuthMethod.PrivatBank])
     const code: AuthSchemaCode = AuthSchemaCode.Authorization
 
     let app: Awaited<ReturnType<typeof getApp>>
@@ -48,11 +48,10 @@ describe(`Action ${GetTokenAction.name}`, () => {
         notificationService = app.container.resolve('notificationService')
         userAuthTokenService = app.container.resolve('userAuthTokenService')
         userService = app.container.resolve('userService')
-        identifier = app.container.resolve('identifier')
+        identifier = app.container.resolve('identifier')!
         bankIdCryptoServiceClient = app.container.resolve('bankIdCryptoServiceClient')
         authMethodMockFactory = new AuthMethodMockFactory(app)
         testKit = app.container.resolve('testKit')
-        await app.start()
     })
 
     afterAll(async () => {
@@ -108,7 +107,7 @@ describe(`Action ${GetTokenAction.name}`, () => {
                     user: userTokenData,
                 },
             })
-            const bankMethod = authMethods.find((item: AuthMethod) => bankMethods.includes(item))
+            const bankMethod: AuthMethod | undefined = authMethods.find((item: AuthMethod) => bankMethods.has(item))
 
             Helpers.assertNotToBeUndefined(bankMethod)
 

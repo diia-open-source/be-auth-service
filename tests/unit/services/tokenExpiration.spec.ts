@@ -7,13 +7,13 @@ import { AppConfig } from '@interfaces/config'
 describe(`${TokenExpirationService.name}`, () => {
     const config = <AppConfig>(<unknown>{
         auth: {
-            cabinetTokenExpiresIn: DurationMs.Minute.toString(),
             jwt: {
                 tokenSignOptions: {
                     expiresIn: DurationMs.Hour.toString(),
                 },
             },
         },
+        authService: { cabinetTokenExpiresIn: DurationMs.Minute.toString() },
     })
 
     const tokenExpirationService = new TokenExpirationService(config)
@@ -30,7 +30,7 @@ describe(`${TokenExpirationService.name}`, () => {
 
     describe('method: `getTokenExpirationBySessionType`', () => {
         it('should return 2h', () => {
-            const date = config.auth.cabinetTokenExpiresIn
+            const date = config.authService.cabinetTokenExpiresIn
 
             expect(tokenExpirationService.getTokenExpirationBySessionType(SessionType.CabinetUser)).toBe(date)
         })

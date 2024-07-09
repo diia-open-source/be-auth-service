@@ -9,11 +9,13 @@ export default class EisUserApprovalVerificationService {
         private readonly config: AppConfig,
         private readonly logger: Logger,
         private readonly httpsService: HttpService,
-    ) {}
+    ) {
+        this.isEnabled = this.config.eis.isEnabled
+    }
 
     private basicToken: string | undefined
 
-    private readonly isEnabled: boolean = this.config.eis.isEnabled
+    private readonly isEnabled
 
     async verify(itn: string, headers: ActHeaders): Promise<void | HttpError> {
         if (!this.isEnabled) {

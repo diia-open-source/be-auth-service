@@ -33,26 +33,32 @@ export default class TestGetTokenAction implements AppAction {
         gender: { type: 'string', enum: this.genderAllowedValues, optional: true },
         document: { type: 'string', optional: true },
         addressOfRegistration: { type: 'string', optional: true },
+        skipLogoutEvent: { type: 'boolean', optional: true },
     }
 
     async handler(args: CustomActionArguments): Promise<ActionResult> {
         const {
-            params: { requestId, fName, lName, mName, email, birthDay, gender, document, addressOfRegistration },
+            params: { requestId, fName, lName, mName, email, birthDay, gender, document, addressOfRegistration, skipLogoutEvent },
             headers,
         } = args
 
-        const { token, identifier } = await this.testService.getUserToken(requestId, headers, {
-            fName,
-            lName,
-            mName,
-            email,
-            birthDay,
-            gender,
-            document,
-            addressOfRegistration,
-        })
+        const { token, identifier } = await this.testService.getUserToken(
+            requestId,
+            headers,
+            {
+                fName,
+                lName,
+                mName,
+                email,
+                birthDay,
+                gender,
+                document,
+                addressOfRegistration,
+            },
+            { skipLogoutEvent },
+        )
 
-        const channelUuid: string = this.identifier.createIdentifier(identifier)
+        const channelUuid = this.identifier.createIdentifier(identifier)
 
         return { token, channelUuid }
     }

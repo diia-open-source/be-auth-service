@@ -5,7 +5,7 @@ export class MongoDbApiError extends ApiError {
 
     constructor(message: string, code: number, data?: ErrorData) {
         super(message, code)
-
+        this.name = 'MongoDbApiError'
         this.keyValue = data
     }
 }

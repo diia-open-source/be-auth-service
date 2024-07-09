@@ -1,9 +1,9 @@
-import { Cipher, createCipheriv, privateEncrypt, randomBytes } from 'crypto'
-import { readFileSync } from 'fs'
+import { Cipher, createCipheriv, privateEncrypt, randomBytes } from 'node:crypto'
+import { readFileSync } from 'node:fs'
 
 import { compare as compareSemver } from 'compare-versions'
-import { FilterQuery } from 'mongoose'
 
+import { FilterQuery } from '@diia-inhouse/db'
 import { BadRequestError, InternalServerError, ModelNotFoundError } from '@diia-inhouse/errors'
 import { I18nService } from '@diia-inhouse/i18n'
 import { PlatformType } from '@diia-inhouse/types'
@@ -23,13 +23,13 @@ export default class AuthSchemaService {
     constructor(
         private readonly config: AppConfig,
         private readonly i18nService: I18nService,
-    ) {}
+    ) {
+        this.privateRsaKey = readFileSync(this.config.fld.certFilePath)
+    }
 
     private readonly authSchemaByCode: Map<AuthSchemaCode, AuthSchemaModel> = new Map()
 
-    private readonly certFilePath: string = this.config.fld.certFilePath
-
-    private readonly privateRsaKey: Buffer = readFileSync(this.certFilePath)
+    private readonly privateRsaKey
 
     async getByCode(code: AuthSchemaCode): Promise<AuthSchemaModel> {
         const cachedSchema = this.authSchemaByCode.get(code)
@@ -72,8 +72,9 @@ export default class AuthSchemaService {
 
                 break
             }
-            case PlatformType.Browser:
+            case PlatformType.Browser: {
                 break
+            }
             default: {
                 const unhandledPlatform: never = platformType
 
@@ -100,9 +101,9 @@ export default class AuthSchemaService {
         if ('messages' in fldConfig.values && fldConfig.values.messages) {
             const messages = fldConfig.values.messages
 
-            Object.entries<string>(messages).forEach(([key, value]) => {
+            for (const [key, value] of Object.entries<string>(messages)) {
                 messages[key] = this.i18nService.get(value)
-            })
+            }
         }
 
         return {

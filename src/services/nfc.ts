@@ -1,16 +1,18 @@
 import { IdentifierService } from '@diia-inhouse/crypto'
-import { ExternalCommunicator, ExternalEvent, ExternalEventBus } from '@diia-inhouse/diia-queue'
+import { ExternalCommunicator, ExternalEventBus } from '@diia-inhouse/diia-queue'
 import { InternalServerError, ModelNotFoundError } from '@diia-inhouse/errors'
 import { CacheService } from '@diia-inhouse/redis'
-import { DocumentTypeCamelCase, Logger } from '@diia-inhouse/types'
+import { Logger } from '@diia-inhouse/types'
 import { utils } from '@diia-inhouse/utils'
 
 import UserService from '@services/user'
 
 import NfcDataMapper from '@dataMappers/nfcDataMapper'
 
+import { ExternalEvent } from '@interfaces/application'
 import { FaceRecoAuthPhotoVerificationRequest } from '@interfaces/externalEventListeners/faceRecoAuthPhotoVerification'
 import { NfcUserDTO } from '@interfaces/services/authMethods/nfc'
+import { DocumentType, DocumentTypeCamelCase } from '@interfaces/services/documents'
 import { AuthGetInnByUnzrResponse, NfcVerificationRequest, VerifyPhotoResult } from '@interfaces/services/nfc'
 
 export default class NfcService {
@@ -130,7 +132,7 @@ export default class NfcService {
 
         const { docNumber, docType, photo, itn } = userData
 
-        const documentType = utils.camelCaseToDocumentType[docType]
+        const documentType = <DocumentType>utils.camelCaseToDocumentType(docType)
         const documentIdentifier = this.identifier.createIdentifier(docNumber)
         const userIdentifier = this.nfcDataIdentifier(itn)
 

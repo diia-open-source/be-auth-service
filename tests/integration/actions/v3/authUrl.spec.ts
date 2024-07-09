@@ -32,14 +32,12 @@ describe(`Action ${AuthUrlAction.name}`, () => {
 
     beforeAll(async () => {
         app = await getApp()
-        identifierService = app.container.resolve('identifier')
+        identifierService = app.container.resolve('identifier')!
         userSessionGenerator = new UserSessionGenerator(identifierService)
         authUrlAction = app.container.build(AuthUrlAction)
         getAuthMethodsAction = app.container.build(GetAuthMethodsAction)
 
         authMethodMockFactory = new AuthMethodMockFactory(app)
-
-        await app.start()
     })
 
     afterAll(async () => {
@@ -81,8 +79,8 @@ describe(`Action ${AuthUrlAction.name}`, () => {
             expect.assertions(2)
             try {
                 await authUrlAction.handler({ params: { processId, target: AuthMethod.PhotoId }, headers })
-            } catch (e) {
-                utils.handleError(e, (error) => {
+            } catch (err) {
+                utils.handleError(err, (error) => {
                     const errorCode = error.getData().processCode
 
                     if (!errorCode) {
@@ -127,8 +125,8 @@ describe(`Action ${AuthUrlAction.name}`, () => {
                     params: { processId, target: authMethod, ...authProvider.getSpecificParams() },
                     headers,
                 })
-            } catch (e) {
-                utils.handleError(e, (error) => {
+            } catch (err) {
+                utils.handleError(err, (error) => {
                     const errorCode = error.getData().processCode
 
                     if (!errorCode) {
@@ -165,8 +163,8 @@ describe(`Action ${AuthUrlAction.name}`, () => {
             expect(authUrl).toEqual(expect.any(String))
             try {
                 await authUrlAction.handler({ params: { processId, target: AuthMethod.PhotoId }, headers })
-            } catch (e) {
-                utils.handleError(e, (error) => {
+            } catch (err) {
+                utils.handleError(err, (error) => {
                     const errorCode = error.getData().processCode
 
                     if (!errorCode) {

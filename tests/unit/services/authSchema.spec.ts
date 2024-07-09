@@ -1,5 +1,5 @@
-import { randomUUID } from 'crypto'
-import fs from 'fs'
+import { randomUUID } from 'node:crypto'
+import fs from 'node:fs'
 
 import { BadRequestError, InternalServerError, ModelNotFoundError } from '@diia-inhouse/errors'
 import { I18nService } from '@diia-inhouse/i18n'
@@ -14,8 +14,7 @@ import { AppConfig } from '@interfaces/config'
 import { AuthSchemaCode, FldConfigValues, FldConfigVersion, FldIosConfig } from '@interfaces/models/authSchema'
 import { FaceLivenessDetectionVersion } from '@interfaces/services/authSchema'
 
-jest.mock('fs')
-jest.mock('crypto', () => {
+jest.mock('node:crypto', () => {
     const original = jest.requireActual('crypto')
 
     return {
@@ -33,7 +32,6 @@ describe(`${AuthSchemaService.name}`, () => {
             testItn,
         },
         auth: {
-            testAuthByItnIsEnabled: true,
             jwk: randomUUID(),
             jwt: {
                 privateKey: randomUUID(),
@@ -48,18 +46,18 @@ describe(`${AuthSchemaService.name}`, () => {
                 },
             },
         },
+        authService: { testAuthByItnIsEnabled: true },
         fld: {
             certFilePath: 'secrets/fld-config.key',
         },
     })
 
-    const authSchemaService = new AuthSchemaService(config, i18nServiceMock)
-
     jest.spyOn(fs, 'readFileSync').mockReturnValue('mock-file-content')
+    const authSchemaService = new AuthSchemaService(config, i18nServiceMock)
 
     describe(`method: getByCode`, () => {
         it('should throw ModelNotFoundError if auth schema model is not found', async () => {
-            jest.spyOn(authSchemaModel, 'findOne').mockResolvedValue(undefined)
+            jest.spyOn(authSchemaModel, 'findOne').mockResolvedValue(null)
 
             const code = AuthSchemaCode.Authorization
 

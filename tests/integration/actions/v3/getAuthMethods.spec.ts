@@ -42,14 +42,13 @@ describe(`Action ${GetAuthMethodsAction.name}`, () => {
     beforeAll(async () => {
         app = await getApp()
         config = app.container.resolve('config')
-        identifierService = app.container.resolve('identifier')
+        identifierService = app.container.resolve('identifier')!
         userSessionGenerator = new UserSessionGenerator(identifierService)
         userService = app.container.resolve('userService')
         completeUserAuthStepsAction = app.container.build(CompleteUserAuthStepsAction)
         authUrlAction = app.container.build(AuthUrlAction)
         getAuthMethodsAction = app.container.build(GetAuthMethodsAction)
         userAuthStepsServiceMock = new UserAuthStepsServiceMock(app)
-        await app.start()
     })
 
     afterAll(async () => {
@@ -121,10 +120,10 @@ describe(`Action ${GetAuthMethodsAction.name}`, () => {
 
         it('should return previously selected auth method on second try', async () => {
             const headers = userSessionGenerator.getHeaders()
-            const { processId, authMethods = [] }: ActionResult = await getAuthMethodsAction.handler({ params: { code }, headers })
-            const selectedAuthMethod = authMethods[authMethods.length - 1]
+            const { processId, authMethods }: ActionResult = await getAuthMethodsAction.handler({ params: { code }, headers })
+            const selectedAuthMethod = authMethods?.at(-1)
 
-            await authUrlAction.handler({ params: { processId, target: selectedAuthMethod }, headers })
+            await authUrlAction.handler({ params: { processId, target: selectedAuthMethod! }, headers })
 
             const { authMethods: secondTryMethods } = await getAuthMethodsAction.handler({ params: { code, processId }, headers })
 
@@ -162,9 +161,9 @@ describe(`Action ${GetAuthMethodsAction.name}`, () => {
                         }
                         try {
                             await getAuthMethodsAction.handler(args)
-                        } catch (e) {
+                        } catch (err) {
                             // eslint-disable-next-line @typescript-eslint/no-loop-func
-                            return utils.handleError(e, (error) => {
+                            return utils.handleError(err, (error) => {
                                 const errorCode = error.getData().processCode
 
                                 if (!errorCode) {
@@ -183,9 +182,9 @@ describe(`Action ${GetAuthMethodsAction.name}`, () => {
                         const args: CustomActionArguments = { params: { code }, headers, session: userSessionGenerator.getUserSession() }
                         try {
                             await getAuthMethodsAction.handler(args)
-                        } catch (e) {
+                        } catch (err) {
                             // eslint-disable-next-line @typescript-eslint/no-loop-func
-                            return utils.handleError(e, (error) => {
+                            return utils.handleError(err, (error) => {
                                 const errorCode = error.getData().processCode
 
                                 if (!errorCode) {
@@ -205,9 +204,9 @@ describe(`Action ${GetAuthMethodsAction.name}`, () => {
                         const args: CustomActionArguments = { params: { code }, headers, session: userSessionGenerator.getUserSession() }
                         try {
                             await getAuthMethodsAction.handler(args)
-                        } catch (e) {
+                        } catch (err) {
                             // eslint-disable-next-line @typescript-eslint/no-loop-func
-                            return utils.handleError(e, (error) => {
+                            return utils.handleError(err, (error) => {
                                 const errorCode = error.getData().processCode
 
                                 if (!errorCode) {
@@ -297,7 +296,7 @@ describe(`Action ${GetAuthMethodsAction.name}`, () => {
             const historyItem = authSteps!.statusHistory.find(
                 (item: UserAuthStepsStatusHistoryItem) => item.status === UserAuthStepsStatus.Completed,
             )
-            const ttl = config.auth.schema.admissionStepsTtl
+            const ttl = config.authService.schema.admissionStepsTtl
 
             historyItem!.date = moment(historyItem!.date)
                 .subtract(ttl + 1, 'milliseconds')

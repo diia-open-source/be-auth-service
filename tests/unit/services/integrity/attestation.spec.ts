@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 
 const attestationModelMock = {
     countDocuments: jest.fn(),
@@ -13,7 +13,7 @@ jest.mock('@models/integrity/attestation', () => attestationModelMock)
 import { AnalyticsActionResult, AnalyticsActionType, AnalyticsService } from '@diia-inhouse/analytics'
 import { MongoDBErrorCode } from '@diia-inhouse/db'
 import DiiaLogger from '@diia-inhouse/diia-logger'
-import { ExternalEvent, ExternalEventBus } from '@diia-inhouse/diia-queue'
+import { ExternalEventBus } from '@diia-inhouse/diia-queue'
 import { AccessDeniedError, ModelNotFoundError } from '@diia-inhouse/errors'
 import TestKit, { mockInstance } from '@diia-inhouse/test'
 import { HttpStatusCode } from '@diia-inhouse/types'
@@ -22,6 +22,8 @@ import AttestationService from '@services/integrity/attestation'
 import IntegrityChallengeResultService from '@services/integrity/challengeResult'
 
 import { MongoDbApiError } from '@tests/unit/stubs'
+
+import { ExternalEvent } from '@interfaces/application'
 
 describe('AttestationService', () => {
     const testKit = new TestKit()
@@ -190,7 +192,7 @@ describe('AttestationService', () => {
             const ctsProfileMatch = false
             const resultData = { basicIntegrity: true }
 
-            jest.spyOn(attestationModelMock, 'findOne').mockResolvedValueOnce(undefined)
+            jest.spyOn(attestationModelMock, 'findOne').mockResolvedValueOnce(null)
 
             await expect(service.onSafetyNetAttestationComplete(nonce, ctsProfileMatch, resultData)).rejects.toThrow(
                 new ModelNotFoundError(attestationModelMock.modelName, nonce),

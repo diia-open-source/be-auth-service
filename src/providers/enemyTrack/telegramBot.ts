@@ -1,4 +1,4 @@
-import * as qs from 'querystring'
+import * as qs from 'node:querystring'
 
 import { ServiceUnavailableError } from '@diia-inhouse/errors'
 import { HttpService, HttpServiceResponse, HttpServiceResponseResult } from '@diia-inhouse/http'
@@ -12,11 +12,14 @@ export default class EnemyTrackTelegramBotService {
         private readonly config: AppConfig,
         private readonly logger: Logger,
         private readonly httpsService: HttpService,
-    ) {}
+    ) {
+        this.host = this.config.enemyTrack.telegramBot.host
+        this.authId = this.config.enemyTrack.telegramBot.authId
+    }
 
-    private readonly host = this.config.enemyTrack.telegramBot.host
+    private readonly host
 
-    private readonly authId = this.config.enemyTrack.telegramBot.authId
+    private readonly authId
 
     async sendLink(link: string): Promise<void> {
         const params: QueryParams = { action: 'getQRcode', link }

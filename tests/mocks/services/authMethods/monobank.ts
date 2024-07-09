@@ -13,9 +13,11 @@ import { GenderAsPerson } from '@interfaces/services/authMethods'
 import { MonobankUserDTO } from '@interfaces/services/authMethods/monobank'
 
 export default class MonobankMock implements AuthMockProvider {
-    constructor(private readonly authMethodsMonobankService: MonobankAuthMethodService) {}
+    constructor(private readonly authMethodsMonobankService: MonobankAuthMethodService) {
+        this.host = `https://${this.authMethodsMonobankService.serviceConfig.baseUrl}`
+    }
 
-    private readonly host: string = `https://${this.authMethodsMonobankService.serviceConfig.baseUrl}`
+    private readonly host
 
     async requestAuthorizationUrl(): Promise<void> {
         nock(this.host).post(Endpoint.PERSONAL_AUTH_REQUEST).reply(HttpStatusCode.OK, { acceptUrl: 'monobank-url' })

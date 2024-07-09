@@ -4,6 +4,8 @@ import DocumentsService from '@services/documents'
 
 import { AuthMockProvider } from '@tests/interfaces/mocks/services/authMethods'
 
+import { DocumentType, EResidency } from '@interfaces/services/documents'
+
 export default class EResidentMrzMock implements AuthMockProvider {
     private testKit: TestKit
 
@@ -16,7 +18,7 @@ export default class EResidentMrzMock implements AuthMockProvider {
     }
 
     async getUserData(): Promise<void> {
-        const eResidencyData = this.testKit.docs.getEResidency()
+        const eResidencyData = this.testKit.docs.generateDocument<EResidency>(DocumentType.EResidency)
 
         jest.spyOn(this.documentsService, 'getEResidencyToProcess').mockImplementationOnce(async () => eResidencyData)
     }

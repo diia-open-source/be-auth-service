@@ -1,12 +1,13 @@
 import { AuthService } from '@diia-inhouse/crypto'
 import { AccessDeniedError } from '@diia-inhouse/errors'
 import TestKit, { mockInstance } from '@diia-inhouse/test'
-import { DocumentType, Gender, OwnerType, UserTokenData, VerifiedBaseTokenData } from '@diia-inhouse/types'
+import { Gender, OwnerType, UserTokenData, VerifiedBaseTokenData } from '@diia-inhouse/types'
 
 import OpenIdService from '@services/openId'
 import UserService from '@services/user'
 
 import { AppConfig } from '@interfaces/config'
+import { DocumentType } from '@interfaces/services/documents'
 import { GetUserDocumentsResult } from '@interfaces/services/user'
 
 describe(`${OpenIdService.name}`, () => {

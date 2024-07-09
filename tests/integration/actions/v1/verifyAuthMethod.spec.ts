@@ -57,7 +57,7 @@ describe(`Action ${VerifyAuthMethodAction.name}`, () => {
 
     beforeAll(async () => {
         app = await getApp()
-        identifierService = app.container.resolve('identifier')
+        identifierService = app.container.resolve('identifier')!
         userSessionGenerator = new UserSessionGenerator(identifierService)
         prolongSessionAction = app.container.build(ProlongSessionAction)
         verifyAuthMethodAction = app.container.build(VerifyAuthMethodAction)
@@ -69,19 +69,17 @@ describe(`Action ${VerifyAuthMethodAction.name}`, () => {
         notificationService = app.container.resolve('notificationService')
         refreshTokenService = app.container.resolve('refreshTokenService')
         userService = app.container.resolve('userService')
-        auth = app.container.resolve('auth')
+        auth = app.container.resolve('auth')!
         bankIdCryptoServiceClient = app.container.resolve('bankIdCryptoServiceClient')
         authMethodMockFactory = new AuthMethodMockFactory(app)
         userAuthStepsServiceMock = new UserAuthStepsServiceMock(app)
-
-        await app.start()
     })
 
     afterAll(async () => {
         await app.stop()
     })
 
-    const bankMethods: AuthMethod[] = [AuthMethod.BankId, AuthMethod.Monobank, AuthMethod.PrivatBank]
+    const bankMethods = new Set([AuthMethod.BankId, AuthMethod.Monobank, AuthMethod.PrivatBank])
 
     describe(`Auth schema ${AuthSchemaCode.Authorization}`, () => {
         const code: AuthSchemaCode = AuthSchemaCode.Authorization
@@ -90,7 +88,7 @@ describe(`Action ${VerifyAuthMethodAction.name}`, () => {
             const headers = userSessionGenerator.getHeaders()
 
             const { processId, authMethods: initialMethods = [] } = await getAuthMethodsAction.handler({ params: { code }, headers })
-            const bankMethod = initialMethods.find((item: AuthMethod) => bankMethods.includes(item))
+            const bankMethod = initialMethods.find((item: AuthMethod) => bankMethods.has(item))
 
             jest.spyOn(bankIdCryptoServiceClient, 'generateCertificate').mockResolvedValueOnce({ cert: 'cert' })
             Helpers.assertNotToBeUndefined(bankMethod)
@@ -236,7 +234,7 @@ describe(`Action ${VerifyAuthMethodAction.name}`, () => {
             const headers = userSessionGenerator.getHeaders()
 
             const { processId, authMethods: initialMethods = [] } = await getAuthMethodsAction.handler({ params: { code }, headers })
-            const bankMethod = initialMethods.find((item: AuthMethod) => bankMethods.includes(item))
+            const bankMethod = initialMethods.find((item: AuthMethod) => bankMethods.has(item))
 
             // expect.assertions(2)
             Helpers.assertNotToBeUndefined(bankMethod)
@@ -335,7 +333,7 @@ describe(`Action ${VerifyAuthMethodAction.name}`, () => {
                 headers,
                 session,
             })
-            const bankMethod = initialMethods.find((item: AuthMethod) => bankMethods.includes(item))
+            const bankMethod = initialMethods.find((item: AuthMethod) => bankMethods.has(item))
 
             Helpers.assertNotToBeUndefined(bankMethod)
 

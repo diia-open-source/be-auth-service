@@ -1,5 +1,5 @@
 import { BadRequestError } from '@diia-inhouse/errors'
-import { AuthDocument, AuthDocumentType, EResidency, Gender, User } from '@diia-inhouse/types'
+import { AuthDocument, AuthDocumentType, Gender, User } from '@diia-inhouse/types'
 import { utils } from '@diia-inhouse/utils'
 
 import Utils from '@src/utils'
@@ -11,6 +11,7 @@ import { MonobankUserDTO } from '@interfaces/services/authMethods/monobank'
 import { NfcUserDTO } from '@interfaces/services/authMethods/nfc'
 import { PrivatBankUserDTO } from '@interfaces/services/authMethods/privatBank'
 import { QesUserDTO } from '@interfaces/services/authMethods/qes'
+import { EResidency } from '@interfaces/services/documents'
 
 export default class UserDataMapper {
     constructor(private readonly appUtils: Utils) {}
@@ -70,35 +71,35 @@ export default class UserDataMapper {
     }
 
     private isMonoUser(user: MonobankUserDTO): boolean {
-        return typeof user.passportSeries !== 'undefined' && typeof user.addressOfRegistration !== 'undefined'
+        return user.passportSeries !== undefined && user.addressOfRegistration !== undefined
     }
 
     private isPbUser(user: PrivatBankUserDTO): boolean {
-        return typeof user.fio !== 'undefined' && typeof user.birthplace !== 'undefined'
+        return user.fio !== undefined && user.birthplace !== undefined
     }
 
     private isBankIdUser(user: BankIdUser): boolean {
         return (
             // (user as BankIdUser).type === 'physical' && //commented because some banks do not return this field
-            typeof user.addresses !== 'undefined' && typeof user.documents !== 'undefined'
+            user.addresses !== undefined && user.documents !== undefined
         )
     }
 
     private isNfcUser(user: NfcUserDTO): boolean {
-        return typeof user.docType !== 'undefined' && typeof user.docNumber !== 'undefined'
+        return user.docType !== undefined && user.docNumber !== undefined
     }
 
     private isEResidencyUser(data: EResidency): boolean {
         return (
-            typeof data.residenceCountryEN !== 'undefined' ||
-            typeof data.residenceCityEN !== 'undefined' ||
-            typeof data.residenceStreet !== 'undefined' ||
-            typeof data.residenceApartment !== 'undefined'
+            data.residenceCountryEN !== undefined ||
+            data.residenceCityEN !== undefined ||
+            data.residenceStreet !== undefined ||
+            data.residenceApartment !== undefined
         )
     }
 
     private isQesUser(user: QesUserDTO): boolean {
-        return typeof user.serial !== 'undefined' && typeof user.issuer !== 'undefined' && typeof user.subject !== 'undefined'
+        return user.serial !== undefined && user.issuer !== undefined && user.subject !== undefined
     }
 
     private fromQesToEntity(data: QesUserDTO): User {
@@ -235,7 +236,7 @@ export default class UserDataMapper {
         return {
             fName: utils.capitalizeName(user.firstName),
             lName: utils.capitalizeName(user.lastName),
-            mName: user.middleName !== this.notAvailableValue ? utils.capitalizeName(user.middleName) : '',
+            mName: user.middleName === this.notAvailableValue ? '' : utils.capitalizeName(user.middleName),
             itn: user.inn,
             gender: this.getGenderFromSex(user.sex),
             phoneNumber: this.getPhoneNumber(user.phone),

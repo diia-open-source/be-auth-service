@@ -1,4 +1,4 @@
-import { Model, Schema, model, models } from 'mongoose'
+import { Model, Schema, model, models } from '@diia-inhouse/db'
 
 import { AuthMethod, AuthSchemaCode, AuthSchemaCondition } from '@interfaces/models/authSchema'
 import { UserAuthStep, UserAuthSteps, UserAuthStepsStatus, UserAuthStepsStatusHistoryItem } from '@interfaces/models/userAuthSteps'

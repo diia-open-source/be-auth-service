@@ -1,7 +1,7 @@
 import { IdentifierService } from '@diia-inhouse/crypto'
 import { BadRequestError } from '@diia-inhouse/errors'
 import TestKit, { mockInstance } from '@diia-inhouse/test'
-import { AuthDocumentType, DocumentTypeCamelCase, Gender } from '@diia-inhouse/types'
+import { AuthDocumentType, Gender } from '@diia-inhouse/types'
 
 import AppUtils from '@src/utils'
 
@@ -16,6 +16,7 @@ import { MonobankUserDTO } from '@interfaces/services/authMethods/monobank'
 import { NfcUserDTO } from '@interfaces/services/authMethods/nfc'
 import { PrivatBankUserDTO } from '@interfaces/services/authMethods/privatBank'
 import { QesUserDTO } from '@interfaces/services/authMethods/qes'
+import { DocumentType, DocumentTypeCamelCase, EResidency } from '@interfaces/services/documents'
 
 describe('UserDataMapper', () => {
     const testKit = new TestKit()
@@ -242,7 +243,7 @@ describe('UserDataMapper', () => {
 
         test('should correctly map EResidency user', () => {
             const itn = generateItn()
-            const eResidencyData = testKit.docs.getEResidency({
+            const eResidencyData = testKit.docs.generateDocument<EResidency>(DocumentType.EResidency, {
                 itn,
                 residenceApartment: '25',
                 residenceBuilding: '10',

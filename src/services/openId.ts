@@ -1,12 +1,13 @@
-import { UserOpenIdData } from '@generated/auth'
+import { UserOpenIdData } from '@generated/auth-service'
 
 import { AuthService as AuthCryptoService } from '@diia-inhouse/crypto'
 import { AccessDeniedError } from '@diia-inhouse/errors'
-import { DocumentType, SessionType } from '@diia-inhouse/types'
+import { SessionType } from '@diia-inhouse/types'
 
 import UserService from '@services/user'
 
 import { AppConfig } from '@interfaces/config'
+import { DocumentType } from '@interfaces/services/documents'
 
 export default class OpenIdService {
     constructor(
@@ -24,10 +25,8 @@ export default class OpenIdService {
         let userHasValidRnokpp = false
 
         for (const doc of userDocuments.documents) {
-            if ([DocumentType.ForeignPassport, DocumentType.InternalPassport].includes(doc.documentType) && !unzr) {
-                if (doc.docId) {
-                    unzr = doc.docId.substring(0, 10)
-                }
+            if ([DocumentType.ForeignPassport, DocumentType.InternalPassport].includes(doc.documentType) && !unzr && doc.docId) {
+                unzr = doc.docId.slice(0, 10)
             }
 
             if (doc.documentType === DocumentType.TaxpayerCard) {

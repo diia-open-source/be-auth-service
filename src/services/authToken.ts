@@ -1,19 +1,10 @@
 import * as bcrypt from 'bcrypt'
-import { ObjectId } from 'bson'
 
 import { AuthService, IdentifierService } from '@diia-inhouse/crypto'
-import { EventBus, InternalEvent } from '@diia-inhouse/diia-queue'
+import { mongo } from '@diia-inhouse/db'
+import { EventBus } from '@diia-inhouse/diia-queue'
 import { AccessDeniedError, ErrorType, ModelNotFoundError, ServiceUnavailableError, UnauthorizedError } from '@diia-inhouse/errors'
-import {
-    HttpStatusCode,
-    Logger,
-    PortalUser,
-    PortalUserPermissions,
-    PortalUserTokenData,
-    RefreshToken,
-    ServiceUserTokenData,
-    SessionType,
-} from '@diia-inhouse/types'
+import { HttpStatusCode, Logger, PortalUser, PortalUserTokenData, ServiceUserTokenData, SessionType } from '@diia-inhouse/types'
 import { utils } from '@diia-inhouse/utils'
 
 import Utils from '@src/utils'
@@ -29,9 +20,9 @@ import TwoFactorService from '@services/twoFactor'
 import UserService from '@services/user'
 import VoteService from '@services/vote'
 
+import { InternalEvent } from '@interfaces/application'
 import { AppConfig } from '@interfaces/config'
 import { RefreshTokenModel } from '@interfaces/models/refreshToken'
-import { GetAcquirerIdByHashIdResult } from '@interfaces/services/documentAcquirers'
 
 export default class AuthTokenService {
     constructor(
@@ -52,41 +43,44 @@ export default class AuthTokenService {
         private readonly userService: UserService,
         private readonly voteService: VoteService,
         private readonly tokenExpirationService: TokenExpirationService,
-    ) {}
+    ) {
+        this.checkingForValidItnIsEnabled = this.config.authService.checkingForValidItnIsEnabled
+        this.testItn = this.config.applicationStoreReview.testItn
+    }
 
-    private readonly checkingForValidItnIsEnabled: boolean = this.config.auth.checkingForValidItnIsEnabled
+    private readonly checkingForValidItnIsEnabled
 
-    private readonly testItn = this.config.applicationStoreReview.testItn
+    private readonly testItn
 
     async getAcquirerAuthToken(acquirerToken: string, traceId: string): Promise<string> {
         try {
-            const [acquirerId, refreshToken]: [ObjectId, RefreshToken] = await Promise.all([
+            const [acquirerId, refreshToken] = await Promise.all([
                 this.documentAcquirersService.getAcquirerIdByToken(acquirerToken),
                 this.refreshTokenService.create(traceId, SessionType.Acquirer),
             ])
 
             return await this.auth.getJweInJwt({ _id: acquirerId, refreshToken, sessionType: SessionType.Acquirer })
-        } catch (e) {
-            return utils.handleError(e, (err) => {
-                if (err.getCode() === HttpStatusCode.NOT_FOUND) {
+        } catch (err) {
+            return utils.handleError(err, (apiError) => {
+                if (apiError.getCode() === HttpStatusCode.NOT_FOUND) {
                     throw new UnauthorizedError(`Acquirer not found by the provided token ${acquirerToken}`, undefined, ErrorType.Operated)
                 }
 
-                this.logger.error('getAcquirerAuthToken error', { err })
+                this.logger.error('getAcquirerAuthToken error', { err: apiError })
                 throw new ServiceUnavailableError('Failed to get acquirer auth token')
             })
         }
     }
 
-    async getPartnerAcquirerAuthToken(acquirerHashId: string, partnerId: ObjectId, traceId: string): Promise<string> {
+    async getPartnerAcquirerAuthToken(acquirerHashId: string, partnerId: mongo.ObjectId, traceId: string): Promise<string> {
         try {
-            const [{ acquirerId }, refreshToken]: [GetAcquirerIdByHashIdResult, RefreshToken] = await Promise.all([
+            const [{ acquirerId }, refreshToken] = await Promise.all([
                 this.documentAcquirersService.getAcquirerIdByHashId(acquirerHashId, partnerId),
                 this.refreshTokenService.create(traceId, SessionType.Acquirer),
             ])
 
             return await this.auth.getJweInJwt({ _id: acquirerId, partnerId, refreshToken, sessionType: SessionType.Acquirer })
-        } catch (err) {
+        } catch {
             throw new UnauthorizedError(`Acquirer not found by the provided id ${acquirerHashId}`)
         }
     }
@@ -102,7 +96,7 @@ export default class AuthTokenService {
         } catch (err) {
             await utils.handleError(err, (error) => {
                 if (error.getCode() === HttpStatusCode.NOT_FOUND) {
-                    throw new ModelNotFoundError(`Partner not found by the provided token`, partnerToken, {}, undefined, ErrorType.Operated)
+                    throw new ModelNotFoundError('Partner', partnerToken, {}, undefined, ErrorType.Operated)
                 }
             })
 
@@ -142,14 +136,14 @@ export default class AuthTokenService {
     async getPortalUserToken(portalUser: PortalUser, traceId: string): Promise<string> {
         const user: PortalUser = { ...portalUser, birthDay: this.appUtils.normalizeBirthDay(portalUser.birthDay) }
 
-        const identifier: string = this.identifier.createIdentifier(user.itn)
-        const sessionType: SessionType = SessionType.PortalUser
+        const identifier = this.identifier.createIdentifier(user.itn)
+        const sessionType = SessionType.PortalUser
 
         this.logger.info('Start receiving token for portal user', { identifier, traceId })
 
         await this.refreshTokenService.removeTokensByUserIdentifier(identifier, SessionType.PortalUser)
 
-        const [refreshToken, permissions]: [RefreshToken, PortalUserPermissions] = await Promise.all([
+        const [refreshToken, permissions] = await Promise.all([
             this.refreshTokenService.create(traceId, sessionType, { userIdentifier: identifier }),
             this.backOfficePetitionService.getPortalUserPermissions(identifier),
         ])
@@ -161,7 +155,7 @@ export default class AuthTokenService {
             sessionType,
             permissions,
         }
-        const token: string = await this.auth.getJweInJwt(tokenData)
+        const token = await this.auth.getJweInJwt(tokenData)
 
         await this.voteService.joinUserToPetitions(tokenData)
 
@@ -169,9 +163,9 @@ export default class AuthTokenService {
     }
 
     async deleteEntitiesByOfferRequestHashId(hashId: string): Promise<void> {
-        const tokens: Pick<RefreshTokenModel, 'value' | 'sessionType'>[] = await this.refreshTokenService.removeTokensByEntityId(hashId)
+        const tokens = await this.refreshTokenService.removeTokensByEntityId(hashId)
 
-        const tasks: Promise<void>[] = tokens.map((token) =>
+        const tasks = tokens.map((token) =>
             this.tokenCacheService.revokeRefreshToken(
                 token.value,
                 this.tokenExpirationService.getTokenExpirationInSecondsBySessionType(token.sessionType),
@@ -185,10 +179,10 @@ export default class AuthTokenService {
         }
     }
 
-    async clearUserSessionData(userIdentifier: string, mobileUid: string): Promise<void> {
+    async clearUserSessionData(userIdentifier: string, mobileUid: string, skipLogoutEvent = false): Promise<void> {
         const refreshTokens = await this.refreshTokenService.getTokensByMobileUid(mobileUid)
 
-        const tasks: Promise<unknown>[] = refreshTokens.map(({ value, sessionType }: RefreshTokenModel) =>
+        const tasks: unknown[] = refreshTokens.map(({ value, sessionType }: RefreshTokenModel) =>
             this.tokenCacheService.revokeRefreshToken(
                 value,
                 this.tokenExpirationService.getTokenExpirationInSecondsBySessionType(sessionType),
@@ -197,8 +191,8 @@ export default class AuthTokenService {
 
         tasks.push(
             this.photoIdAuthRequestService.deleteByMobileUid(mobileUid),
-            this.refreshTokenService.removeTokensByMobileUid(mobileUid),
-            this.eventBus.publish(InternalEvent.AuthUserLogOut, { mobileUid, userIdentifier }),
+            this.refreshTokenService.removeTokensByMobileUid(mobileUid, userIdentifier),
+            !skipLogoutEvent && this.eventBus.publish(InternalEvent.AuthUserLogOut, { mobileUid, userIdentifier }),
         )
 
         try {

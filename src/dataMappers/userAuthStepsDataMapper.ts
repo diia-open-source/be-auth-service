@@ -32,7 +32,7 @@ export default class UserAuthStepsDataMapper {
     }
 
     private getAuthMethods(userSteps: UserAuthStep[], authMethods: AuthMethod[]): AuthMethod[] {
-        const lastStep: UserAuthStep | undefined = userSteps[userSteps.length - 1]
+        const lastStep: UserAuthStep | undefined = userSteps.at(-1)
         if (!lastStep || lastStep.endDate) {
             return authMethods
         }

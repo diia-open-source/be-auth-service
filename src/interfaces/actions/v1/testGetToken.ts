@@ -11,6 +11,7 @@ export interface CustomActionArguments extends ServiceActionArguments<AppUserAct
         gender?: Gender
         document?: string
         addressOfRegistration?: string
+        skipLogoutEvent?: boolean
     }
 }
 

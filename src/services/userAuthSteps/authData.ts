@@ -1,5 +1,4 @@
-import { FilterQuery, UpdateQuery, UpdateWriteOpResult } from 'mongoose'
-
+import { FilterQuery, UpdateQuery, UpdateWriteOpResult } from '@diia-inhouse/db'
 import { AccessDeniedError, ModelNotFoundError } from '@diia-inhouse/errors'
 import { CacheService } from '@diia-inhouse/redis'
 import { Logger } from '@diia-inhouse/types'
@@ -68,10 +67,10 @@ export default class AuthDataService {
     }
 
     private getAuthorizationCacheTtlSec(code: AuthSchemaCode): number {
-        const authSchema = this.config.auth.schema.schemaMap[code]
+        const authSchema = this.config.authService.schema.schemaMap[code]
 
         if (!authSchema) {
-            return Math.floor(this.config.auth.schema.schemaMap[AuthSchemaCode.Authorization].tokenParamsCacheTtl / 1000)
+            return Math.floor(this.config.authService.schema.schemaMap[AuthSchemaCode.Authorization].tokenParamsCacheTtl / 1000)
         }
 
         return authSchema.tokenParamsCacheTtl / 1000

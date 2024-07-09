@@ -5,10 +5,12 @@ import { SessionType } from '@diia-inhouse/types'
 import { AppConfig } from '@interfaces/config'
 
 export default class TokenExpirationService {
-    constructor(private readonly config: AppConfig) {}
+    private readonly expiresInBySession: Partial<Record<SessionType, string>>
 
-    private readonly expiresInBySession: Partial<Record<SessionType, string>> = {
-        [SessionType.CabinetUser]: this.config.auth.cabinetTokenExpiresIn,
+    constructor(private readonly config: AppConfig) {
+        this.expiresInBySession = {
+            [SessionType.CabinetUser]: this.config.authService.cabinetTokenExpiresIn,
+        }
     }
 
     getTokenExpirationInSecondsBySessionType(sessionType: SessionType): number {

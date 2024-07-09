@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 import { AnalyticsActionResult, AnalyticsService } from '@diia-inhouse/analytics'
 import { AccessDeniedError, BadRequestError, NotFoundError } from '@diia-inhouse/errors'
-import { DocumentTypeCamelCase, Logger, UserTokenData } from '@diia-inhouse/types'
+import { Logger, UserTokenData } from '@diia-inhouse/types'
 import { phoneticChecker } from '@diia-inhouse/utils'
 
 import NfcService from '@services/nfc'
@@ -12,6 +12,7 @@ import { AnalyticsActionType, AnalyticsCategory, ProcessCode } from '@interfaces
 import { AuthMethodVerifyParams } from '@interfaces/services/auth'
 import { AuthProviderFactory } from '@interfaces/services/authMethods'
 import { NfcUserDTO } from '@interfaces/services/authMethods/nfc'
+import { DocumentTypeCamelCase } from '@interfaces/services/documents'
 
 export default class NfcProvider implements AuthProviderFactory {
     constructor(
@@ -19,9 +20,11 @@ export default class NfcProvider implements AuthProviderFactory {
         private readonly logger: Logger,
         private readonly nfcService: NfcService,
         private readonly analytics: AnalyticsService,
-    ) {}
+    ) {
+        this.host = this.config.nfc.authUrlHost
+    }
 
-    private readonly host = this.config.nfc.authUrlHost
+    private readonly host
 
     async requestAuthorizationUrl(): Promise<string> {
         const requestId = uuidv4()
@@ -42,7 +45,7 @@ export default class NfcProvider implements AuthProviderFactory {
         }
 
         const userData = await this.nfcService.getUserDataFromCache(mobileUid)
-        if (!userData || !Object.keys(userData).length) {
+        if (!userData || Object.keys(userData).length === 0) {
             throw new NotFoundError('User data not found')
         }
 

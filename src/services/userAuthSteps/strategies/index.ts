@@ -1,35 +1,31 @@
-import AuthorizationStrategyService from '@services/userAuthSteps/strategies/authorization'
-import CabinetAuthorizationStrategyService from '@services/userAuthSteps/strategies/cabinetAuthorization'
-import DiiaIdCreationStrategyService from '@services/userAuthSteps/strategies/diiaIdCreation'
-import DiiaIdSharingBarcodeStrategyService from '@services/userAuthSteps/strategies/diiaIdSharingBarcode'
-import DiiaIdSharingDeeplinkDynamicStrategyService from '@services/userAuthSteps/strategies/diiaIdSharingDeeplinkDynamic'
-import DiiaIdSharingDeeplinkStaticStrategyService from '@services/userAuthSteps/strategies/diiaIdSharingDeeplinkStatic'
-import DiiaIdSigningStrategyService from '@services/userAuthSteps/strategies/diiaIdSigning'
-import EResidentApplicantAuthStrategyService from '@services/userAuthSteps/strategies/eResidentApplicantAuth'
-import EResidentAuthStrategyService from '@services/userAuthSteps/strategies/eResidentAuth'
-import EResidentDiiaIdCreationStrategyService from '@services/userAuthSteps/strategies/eResidentDiiaIdCreation'
-import EResidentDiiaIdSigningStrategyService from '@services/userAuthSteps/strategies/eResidentDiiaIdSigning'
-import EResidentFirstAuthStrategyService from '@services/userAuthSteps/strategies/eResidentFirstAuth'
-import MilitaryBondsSigningStrategyService from '@services/userAuthSteps/strategies/militaryBondsSigning'
-import MortgageSigningStrategyService from '@services/userAuthSteps/strategies/mortgageSigning'
-import ProlongStrategyService from '@services/userAuthSteps/strategies/prolong'
-import ResidencePermitNfcAddingStrategyService from '@services/userAuthSteps/strategies/residencePermitNfcAdding'
+export { default as AuthorizationStrategyService } from '@services/userAuthSteps/strategies/authorization'
 
-export {
-    AuthorizationStrategyService,
-    CabinetAuthorizationStrategyService,
-    DiiaIdCreationStrategyService,
-    DiiaIdSharingBarcodeStrategyService,
-    DiiaIdSharingDeeplinkDynamicStrategyService,
-    DiiaIdSharingDeeplinkStaticStrategyService,
-    DiiaIdSigningStrategyService,
-    EResidentApplicantAuthStrategyService,
-    EResidentAuthStrategyService,
-    EResidentDiiaIdCreationStrategyService,
-    EResidentDiiaIdSigningStrategyService,
-    EResidentFirstAuthStrategyService,
-    MilitaryBondsSigningStrategyService,
-    MortgageSigningStrategyService,
-    ProlongStrategyService,
-    ResidencePermitNfcAddingStrategyService,
-}
+export { default as CabinetAuthorizationStrategyService } from '@services/userAuthSteps/strategies/cabinetAuthorization'
+
+export { default as DiiaIdCreationStrategyService } from '@services/userAuthSteps/strategies/diiaIdCreation'
+
+export { default as DiiaIdSharingBarcodeStrategyService } from '@services/userAuthSteps/strategies/diiaIdSharingBarcode'
+
+export { default as DiiaIdSharingDeeplinkDynamicStrategyService } from '@services/userAuthSteps/strategies/diiaIdSharingDeeplinkDynamic'
+
+export { default as DiiaIdSharingDeeplinkStaticStrategyService } from '@services/userAuthSteps/strategies/diiaIdSharingDeeplinkStatic'
+
+export { default as DiiaIdSigningStrategyService } from '@services/userAuthSteps/strategies/diiaIdSigning'
+
+export { default as EResidentApplicantAuthStrategyService } from '@services/userAuthSteps/strategies/eResidentApplicantAuth'
+
+export { default as EResidentAuthStrategyService } from '@services/userAuthSteps/strategies/eResidentAuth'
+
+export { default as EResidentDiiaIdCreationStrategyService } from '@services/userAuthSteps/strategies/eResidentDiiaIdCreation'
+
+export { default as EResidentDiiaIdSigningStrategyService } from '@services/userAuthSteps/strategies/eResidentDiiaIdSigning'
+
+export { default as EResidentFirstAuthStrategyService } from '@services/userAuthSteps/strategies/eResidentFirstAuth'
+
+export { default as MilitaryBondsSigningStrategyService } from '@services/userAuthSteps/strategies/militaryBondsSigning'
+
+export { default as MortgageSigningStrategyService } from '@services/userAuthSteps/strategies/mortgageSigning'
+
+export { default as ProlongStrategyService } from '@services/userAuthSteps/strategies/prolong'
+
+export { default as ResidencePermitNfcAddingStrategyService } from '@services/userAuthSteps/strategies/residencePermitNfcAdding'

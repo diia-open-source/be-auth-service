@@ -1,4 +1,4 @@
-import { DocumentType } from '@diia-inhouse/types'
+import { DocumentType } from '@interfaces/services/documents'
 
 export interface FeaturePoints {
     documentType: string

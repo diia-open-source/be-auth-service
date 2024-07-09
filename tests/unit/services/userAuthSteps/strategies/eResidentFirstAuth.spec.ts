@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 
 import { IdentifierService } from '@diia-inhouse/crypto'
 import DiiaLogger from '@diia-inhouse/diia-logger'
@@ -138,7 +138,7 @@ describe('EResidentFirstAuthStrategyService', () => {
                 requestId,
                 user,
             }
-            const expectedError = new Error()
+            const expectedError = new Error('Test error')
 
             jest.spyOn(envService, 'isProd').mockReturnValueOnce(true)
             jest.spyOn(authService, 'verify').mockRejectedValue(expectedError)

@@ -33,14 +33,17 @@ export default class ValidateAttestationAction implements AppAction {
         } = args
 
         switch (platformType) {
-            case PlatformType.Android:
+            case PlatformType.Android: {
                 await this.integrityGoogleCheckService.launchIntegrityChallenge(userIdentifier, mobileUid, signedAttestationStatement)
                 break
-            case PlatformType.Huawei:
+            }
+            case PlatformType.Huawei: {
                 await this.integrityHuaweiCheckService.launchIntegrityChallenge(userIdentifier, mobileUid, signedAttestationStatement)
                 break
-            default:
+            }
+            default: {
                 throw new BadRequestError(`This operation is not supported for platform ${platformType}`)
+            }
         }
 
         return { success: true }

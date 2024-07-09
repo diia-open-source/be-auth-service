@@ -7,6 +7,6 @@ import { mockInstance } from '@diia-inhouse/test'
 
 const grpcClientFactory = new GrpcClientFactory('Auth', new DiiaLogger(), mockInstance(MetricsService))
 
-export const cryptoDocServiceClient = grpcClientFactory.createGrpcClient(CryptoDocServiceDefinition, 'test', 'crypto')
+export const cryptoDocServiceClient = grpcClientFactory.createGrpcClient(CryptoDocServiceDefinition, 'test')
 
-export const bankIdCryptoServiceClient = grpcClientFactory.createGrpcClient(BankIdCryptoServiceDefinition, 'test', 'crypto')
+export const bankIdCryptoServiceClient = grpcClientFactory.createGrpcClient(BankIdCryptoServiceDefinition, 'test')

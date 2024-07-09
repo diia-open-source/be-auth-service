@@ -1,8 +1,9 @@
-import { EventBusListener, InternalEvent } from '@diia-inhouse/diia-queue'
+import { EventBusListener } from '@diia-inhouse/diia-queue'
 import { ValidationSchema } from '@diia-inhouse/validators'
 
 import RefreshTokenService from '@services/refreshToken'
 
+import { InternalEvent } from '@interfaces/application'
 import { EventPayload } from '@interfaces/eventListeners/gatewayUserActivity'
 
 export default class GatewayUserActivityEventListener implements EventBusListener {

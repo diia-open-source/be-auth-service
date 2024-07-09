@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 
 import { AuthService, IdentifierService } from '@diia-inhouse/crypto'
 import DiiaLogger from '@diia-inhouse/diia-logger'
@@ -31,7 +31,6 @@ describe(`${TestAuthTokenService.constructor.name}`, () => {
             testItn,
         },
         auth: {
-            testAuthByItnIsEnabled: true,
             jwk: randomUUID(),
             jwt: {
                 privateKey: randomUUID(),
@@ -45,6 +44,9 @@ describe(`${TestAuthTokenService.constructor.name}`, () => {
                     ignoreExpiration: false,
                 },
             },
+        },
+        authService: {
+            testAuthByItnIsEnabled: true,
         },
     })
     const logger = mockInstance(DiiaLogger)
@@ -80,7 +82,7 @@ describe(`${TestAuthTokenService.constructor.name}`, () => {
             const headers = testKit.session.getHeaders()
             const expectedError = new BadRequestError('Validation failed')
             const service = new TestAuthTokenService(
-                { ...config, auth: { ...config.auth, testAuthByItnIsEnabled: false } },
+                { ...config, authService: { ...config.authService, testAuthByItnIsEnabled: false } },
                 logger,
                 identifierService,
                 authService,
@@ -160,7 +162,7 @@ describe(`${TestAuthTokenService.constructor.name}`, () => {
 
             const result = await testAuthTokenService.getUserToken(testItn, headers, providedUserData)
 
-            expect(clearUserSessionDataSpy).toHaveBeenCalledWith(identifier, mobileUid)
+            expect(clearUserSessionDataSpy).toHaveBeenCalledWith(identifier, mobileUid, undefined)
             expect(eisVerifySpy).toHaveBeenCalledWith(testItn, headers)
             expect(getByPlatformTypeAndAppVersionSpy).toHaveBeenCalledWith(platformType, appVersion)
             expect(createRefreshTokenSpy).toHaveBeenCalled()
@@ -225,7 +227,7 @@ describe(`${TestAuthTokenService.constructor.name}`, () => {
 
             const result = await testAuthTokenService.getUserToken(testItn, headers, {})
 
-            expect(clearUserSessionDataSpy).toHaveBeenCalledWith(identifier, mobileUid)
+            expect(clearUserSessionDataSpy).toHaveBeenCalledWith(identifier, mobileUid, undefined)
             expect(eisVerifySpy).toHaveBeenCalledWith(testItn, headers)
             expect(getByPlatformTypeAndAppVersionSpy).toHaveBeenCalledWith(platformType, appVersion)
             expect(createRefreshTokenSpy).toHaveBeenCalled()

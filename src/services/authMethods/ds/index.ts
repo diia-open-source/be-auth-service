@@ -28,7 +28,7 @@ export default class DsProvider implements AuthProviderFactory {
     async requestAuthorizationUrl(_: AuthUrlOps, headers: AuthProviderHeaders): Promise<string> {
         const deviceUuid = headers.mobileUid
         const requestId: string = Buffer.from(uuidv4()).toString('base64')
-        const { nonceCacheTtl } = this.config.auth.schema.schemaMap[AuthSchemaCode.CabinetAuthorization]
+        const { nonceCacheTtl } = this.config.authService.schema.schemaMap[AuthSchemaCode.CabinetAuthorization]
         const hashedRequestId = await this.generateHash(requestId)
         const deeplink = await this.getDeeplink(hashedRequestId)
 
@@ -58,11 +58,11 @@ export default class DsProvider implements AuthProviderFactory {
             const { deeplink } = await this.documentAcquirersService.createOfferRequest(requestId)
 
             return deeplink
-        } catch (e) {
-            return utils.handleError(e, (err) => {
+        } catch (err) {
+            return utils.handleError(err, (apiError) => {
                 const errorMessage = `Unable to get deeplink for requestId: ${requestId}`
 
-                this.logger.error(`${errorMessage} Reason:`, { err })
+                this.logger.error(`${errorMessage} Reason:`, { err: apiError })
                 throw new AccessDeniedError(errorMessage)
             })
         }
@@ -73,11 +73,11 @@ export default class DsProvider implements AuthProviderFactory {
             const signature = await this.diiaSignatureService.getSignature(requestId)
 
             return signature
-        } catch (e) {
-            return utils.handleError(e, (err) => {
+        } catch (err) {
+            return utils.handleError(err, (apiError) => {
                 const errorMessage = `Unable to get signature for requestId: ${requestId}`
 
-                this.logger.error(`${errorMessage} Reason:`, { err })
+                this.logger.error(`${errorMessage} Reason:`, { err: apiError })
                 throw new AccessDeniedError(errorMessage)
             })
         }

@@ -17,19 +17,26 @@ import { AppConfig } from '@interfaces/config'
 import { AuthMethod, AuthSchemaCode } from '@interfaces/models/authSchema'
 
 export default class UserAuthStepsService {
-    constructor(private readonly app: ServiceOperator<AppConfig, AppDeps>) {}
+    constructor(private readonly app: ServiceOperator<AppConfig, AppDeps>) {
+        this.userSessionGenerator = new UserSessionGenerator(this.app.container.resolve('identifier')!)
+        this.userService = this.app.container.resolve('userService')
+        this.getAuthMethodsAction = this.app.container.build(GetAuthMethodsAction)
+        this.authUrlAction = this.app.container.build(AuthUrlAction)
+        this.verifyAuthMethodAction = this.app.container.build(VerifyAuthMethodAction)
+        this.authMethodMockFactory = new AuthMethodMockFactory(this.app)
+    }
 
-    private readonly userSessionGenerator = new UserSessionGenerator(this.app.container.resolve('identifier'))
+    private readonly userSessionGenerator
 
-    private readonly userService: UserService = this.app.container.resolve('userService')
+    private readonly userService: UserService
 
-    private readonly getAuthMethodsAction = this.app.container.build(GetAuthMethodsAction)
+    private readonly getAuthMethodsAction
 
-    private readonly authUrlAction = this.app.container.build(AuthUrlAction)
+    private readonly authUrlAction
 
-    private readonly verifyAuthMethodAction = this.app.container.build(VerifyAuthMethodAction)
+    private readonly verifyAuthMethodAction
 
-    private readonly authMethodMockFactory = new AuthMethodMockFactory(this.app)
+    private readonly authMethodMockFactory
 
     async finishDiiaIdCreationSteps(
         session = this.userSessionGenerator.getUserSession(),

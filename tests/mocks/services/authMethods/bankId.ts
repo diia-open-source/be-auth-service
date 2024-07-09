@@ -17,9 +17,11 @@ export default class BankIdMock implements AuthMockProvider {
         private readonly config: AppConfig,
         private readonly store: StoreService,
         private readonly external: ExternalCommunicator,
-    ) {}
+    ) {
+        this.host = `https://${this.config.bankId.host}`
+    }
 
-    private readonly host: string = `https://${this.config.bankId.host}`
+    private readonly host
 
     private readonly bankId: string = 'diiabank'
 

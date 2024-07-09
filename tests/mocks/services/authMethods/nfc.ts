@@ -1,5 +1,3 @@
-import { DocumentTypeCamelCase } from '@diia-inhouse/types'
-
 import InvalidateTemporaryTokenAction from '@actions/v1/invalidateTemporaryToken'
 
 import NfcService from '@services/nfc'
@@ -10,6 +8,7 @@ import { AuthMockProvider, GetUserDataParams } from '@tests/interfaces/mocks/ser
 
 import { GenderAsSex } from '@interfaces/services/authMethods'
 import { NfcUserDTO } from '@interfaces/services/authMethods/nfc'
+import { DocumentTypeCamelCase } from '@interfaces/services/documents'
 
 export default class NfcMock implements AuthMockProvider {
     constructor(

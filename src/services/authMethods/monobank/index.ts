@@ -16,6 +16,7 @@ export default class MonobankProvider implements AuthProviderFactory {
         private readonly httpsService: HttpService,
     ) {
         this.serviceConfig = this.config.thirdParty.monobank
+        this.integrationPointsTimeout = this.config.app.integrationPointsTimeout
         if (!this.serviceConfig.isEnabled) {
             this.logger.info('Monobank provider disabled')
 
@@ -28,7 +29,7 @@ export default class MonobankProvider implements AuthProviderFactory {
 
     readonly serviceConfig
 
-    private readonly integrationPointsTimeout = this.config.app.integrationPointsTimeout
+    private readonly integrationPointsTimeout
 
     private readonly signer: Signer | undefined
 
@@ -80,10 +81,12 @@ export default class MonobankProvider implements AuthProviderFactory {
             if (err.data) {
                 switch (err.statusCode) {
                     case 404:
-                    case 401:
+                    case 401: {
                         throw new UnauthorizedError(err.data.errorDescription)
-                    default:
+                    }
+                    default: {
                         throw new UnauthorizedError(`${JSON.stringify(err.data)} ${err.statusCode}`)
+                    }
                 }
             }
 
@@ -101,19 +104,20 @@ export default class MonobankProvider implements AuthProviderFactory {
             throw new Error('Monobank provider is disabled')
         }
 
-        const time: string = Math.floor(new Date().getTime() / 1000).toString()
+        const time: string = Math.floor(Date.now() / 1000).toString()
         const baseHeaders: MonoHeaders = {
             'X-Key-Id': this.serviceConfig.APIToken,
             'X-Time': time,
         }
 
         switch (endpoint) {
-            case Endpoint.PERSONAL_AUTH_REQUEST:
+            case Endpoint.PERSONAL_AUTH_REQUEST: {
                 return {
                     ...baseHeaders,
                     'X-Permissions': permissions.join(''),
                     'X-Sign': this.signer.sign(`${time}${permissions.join('')}${endpoint}`),
                 }
+            }
             case Endpoint.CLIENT_INFO: {
                 const headers: MonoHeaders = {
                     ...baseHeaders,
@@ -126,8 +130,9 @@ export default class MonobankProvider implements AuthProviderFactory {
 
                 return headers
             }
-            default:
+            default: {
                 throw new BadRequestError('Invalid endpoint')
+            }
         }
     }
 }

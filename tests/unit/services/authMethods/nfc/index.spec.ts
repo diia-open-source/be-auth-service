@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 
 const uuidV4Stub = jest.fn()
 const phoneticCheckerMock = { getEqualityCoefficient: jest.fn() }
@@ -10,7 +10,6 @@ import { AnalyticsActionResult, AnalyticsService } from '@diia-inhouse/analytics
 import DiiaLogger from '@diia-inhouse/diia-logger'
 import { AccessDeniedError, BadRequestError, NotFoundError } from '@diia-inhouse/errors'
 import TestKit, { mockInstance } from '@diia-inhouse/test'
-import { DocumentTypeCamelCase } from '@diia-inhouse/types'
 
 import NfcProvider from '@services/authMethods/nfc'
 import NfcService from '@services/nfc'
@@ -19,6 +18,7 @@ import { AppConfig } from '@interfaces/config'
 import { AnalyticsActionType, AnalyticsCategory, ProcessCode } from '@interfaces/services'
 import { GenderAsSex } from '@interfaces/services/authMethods'
 import { NfcUserDTO } from '@interfaces/services/authMethods/nfc'
+import { DocumentTypeCamelCase } from '@interfaces/services/documents'
 
 describe('NfcProvider', () => {
     const testKit = new TestKit()

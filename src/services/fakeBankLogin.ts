@@ -9,7 +9,7 @@ import { FakeBankLoginSettings } from '@interfaces/models/fakeBankLoginSettings'
 export default class FakeBankLoginService {
     constructor(private readonly logger: Logger) {}
 
-    async getFakeDataToApply(platformType: PlatformType, appVersionParam: string | undefined): Promise<FakeBankLoginSettings | undefined> {
+    async getFakeDataToApply(platformType: PlatformType, appVersionParam?: string): Promise<FakeBankLoginSettings | undefined> {
         if (!appVersionParam) {
             return
         }

@@ -1,17 +1,25 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 
 import { MoleculerService } from '@diia-inhouse/diia-app'
 
-import { EventBus, InternalEvent } from '@diia-inhouse/diia-queue'
+import { EventBus } from '@diia-inhouse/diia-queue'
 import { AccessDeniedError } from '@diia-inhouse/errors'
 import TestKit, { mockInstance } from '@diia-inhouse/test'
-import { ActionVersion, CabinetUserSession, DocumentType, SessionType, UserSession } from '@diia-inhouse/types'
+import { ActionVersion, CabinetUserSession, SessionType, UserSession } from '@diia-inhouse/types'
 
 import UserService from '@services/user'
 
+import { InternalEvent } from '@interfaces/application'
 import { DiiaIdAction } from '@interfaces/services/diiaId'
+import { DocumentType } from '@interfaces/services/documents'
 import { HistoryAction } from '@interfaces/services/user'
 import { AuthUser, AuthUserSessionType } from '@interfaces/services/userAuthToken'
+
+const wrapMethod = (name: string, actionVersion: ActionVersion = ActionVersion.V1): { name: string; actionVersion: ActionVersion } => ({
+    name,
+    actionVersion,
+})
+const wrapParams = <T>(obj: T): { params: T } => ({ params: obj })
 
 describe('Service: `UserService`', () => {
     const moleculerService = mockInstance(MoleculerService)
@@ -28,12 +36,6 @@ describe('Service: `UserService`', () => {
     const documentType = DocumentType.DriverLicense
     const documentIdentifier = randomUUID()
     const photo = randomUUID()
-
-    const wrapMethod = (name: string, actionVersion: ActionVersion = ActionVersion.V1): { name: string; actionVersion: ActionVersion } => ({
-        name,
-        actionVersion,
-    })
-    const wrapParams = <T>(obj: T): { params: T } => ({ params: obj })
 
     describe('method: `createOrUpdateProfile`', () => {
         it.each([[testKit.session.getCabinetUserSession()], [testKit.session.getUserSession()]])(

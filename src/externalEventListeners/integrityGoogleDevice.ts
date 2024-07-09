@@ -1,8 +1,9 @@
-import { EventBusListener, ExternalEvent } from '@diia-inhouse/diia-queue'
+import { EventBusListener } from '@diia-inhouse/diia-queue'
 import { ValidationSchema } from '@diia-inhouse/validators'
 
 import GoogleIntegrityCheckService from '@services/integrity/googleCheck'
 
+import { ExternalEvent } from '@interfaces/application'
 import { EventPayload } from '@interfaces/externalEventListeners/integrityGoogleDevice'
 
 export default class IntegrityGoogleDeviceEventListener implements EventBusListener {

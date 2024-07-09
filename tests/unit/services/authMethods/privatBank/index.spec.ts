@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 
 import DiiaLogger from '@diia-inhouse/diia-logger'
 import { HttpError, InternalServerError, ServiceUnavailableError, UnauthorizedError } from '@diia-inhouse/errors'

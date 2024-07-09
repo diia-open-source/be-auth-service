@@ -51,7 +51,7 @@ export default class EResidentApplicantAuthStrategyService implements AuthSchema
                         headers,
                         otp,
                     })
-                } catch (err) {
+                } catch {
                     throw new AccessDeniedError(
                         'Verification failed. Reason: Otp is invalid or expired',
                         {},

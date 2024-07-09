@@ -1,10 +1,12 @@
 import { MoleculerService } from '@diia-inhouse/diia-app'
 
-import { EventBus, InternalEvent } from '@diia-inhouse/diia-queue'
+import { EventBus } from '@diia-inhouse/diia-queue'
 import { AccessDeniedError } from '@diia-inhouse/errors'
-import { ActHeaders, ActionVersion, DocumentType, EResidentTokenData, SessionType, UserTokenData } from '@diia-inhouse/types'
+import { ActHeaders, ActionVersion, EResidentTokenData, SessionType, UserTokenData } from '@diia-inhouse/types'
 
+import { InternalEvent } from '@interfaces/application'
 import { DiiaIdAction } from '@interfaces/services/diiaId'
+import { DocumentType } from '@interfaces/services/documents'
 import {
     CountHistoryByActionResult,
     CreateDocumentFeaturePointsResponse,
@@ -26,16 +28,20 @@ export default class UserService {
     async createOrUpdateProfile(user: AuthUser, headers: ActHeaders, sessionType: AuthUserSessionType): Promise<void> {
         switch (sessionType) {
             case SessionType.User:
-            case SessionType.CabinetUser:
+            case SessionType.CabinetUser: {
                 await this.createOrUpdateUserProfile(<UserTokenData>user, headers)
                 break
-            case SessionType.EResident:
+            }
+            case SessionType.EResident: {
                 await this.createOrUpdateEResidentProfile(<EResidentTokenData>user, headers)
                 break
-            case SessionType.EResidentApplicant:
+            }
+            case SessionType.EResidentApplicant: {
                 break
-            default:
+            }
+            default: {
                 throw new AccessDeniedError('Unknown app user session type')
+            }
         }
     }
 

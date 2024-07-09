@@ -1,5 +1,5 @@
 import { AccessDeniedError, BadRequestError } from '@diia-inhouse/errors'
-import { DocumentType, Logger, SessionType, User } from '@diia-inhouse/types'
+import { Logger, SessionType, User } from '@diia-inhouse/types'
 
 import UserService from '@services/user'
 import UserAuthStepsAuthDataService from '@services/userAuthSteps/authData'
@@ -8,6 +8,7 @@ import UserAuthTokenService from '@services/userAuthToken'
 import { AuthMethod, AuthSchemaCode, AuthSchemaCondition } from '@interfaces/models/authSchema'
 import { UserAuthStepsStatus } from '@interfaces/models/userAuthSteps'
 import { ProcessCode } from '@interfaces/services'
+import { DocumentType } from '@interfaces/services/documents'
 import {
     AuthSchemaStrategy,
     AuthStepsStatusToAuthMethodProcessCode,

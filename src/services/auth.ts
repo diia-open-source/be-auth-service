@@ -29,21 +29,23 @@ export default class AuthService {
         private readonly authMethodsPhotoIdService: PhotoIdAuthMethodService,
         private readonly authMethodsPrivatBankService: PrivatBankAuthMethodService,
         private readonly authMethodsQesService: QesAuthMethodService,
-    ) {}
-
-    private readonly providers: Record<AuthMethod, AuthProviderFactory> = {
-        [AuthMethod.BankId]: this.authMethodsBankIdService,
-        [AuthMethod.Ds]: this.authMethodsDsService,
-        [AuthMethod.EmailOtp]: this.authMethodsEmailOtpService,
-        [AuthMethod.EResidentMrz]: this.authMethodsEResidentMrzService,
-        [AuthMethod.EResidentNfc]: this.authMethodsEResidentNfcService,
-        [AuthMethod.EResidentQrCode]: this.authMethodsEResidentQrCodeService,
-        [AuthMethod.Monobank]: this.authMethodsMonobankService,
-        [AuthMethod.Nfc]: this.authMethodsNfcService,
-        [AuthMethod.PhotoId]: this.authMethodsPhotoIdService,
-        [AuthMethod.PrivatBank]: this.authMethodsPrivatBankService,
-        [AuthMethod.Qes]: this.authMethodsQesService,
+    ) {
+        this.providers = {
+            [AuthMethod.BankId]: this.authMethodsBankIdService,
+            [AuthMethod.Ds]: this.authMethodsDsService,
+            [AuthMethod.EmailOtp]: this.authMethodsEmailOtpService,
+            [AuthMethod.EResidentMrz]: this.authMethodsEResidentMrzService,
+            [AuthMethod.EResidentNfc]: this.authMethodsEResidentNfcService,
+            [AuthMethod.EResidentQrCode]: this.authMethodsEResidentQrCodeService,
+            [AuthMethod.Monobank]: this.authMethodsMonobankService,
+            [AuthMethod.Nfc]: this.authMethodsNfcService,
+            [AuthMethod.PhotoId]: this.authMethodsPhotoIdService,
+            [AuthMethod.PrivatBank]: this.authMethodsPrivatBankService,
+            [AuthMethod.Qes]: this.authMethodsQesService,
+        }
     }
+
+    private readonly providers: Record<AuthMethod, AuthProviderFactory>
 
     async getAuthUrl(method: AuthMethod, ops: AuthUrlOps, headers: AuthProviderHeaders, schemaCode?: AuthSchemaCode): Promise<string> {
         const authProvider = this.providers[method]

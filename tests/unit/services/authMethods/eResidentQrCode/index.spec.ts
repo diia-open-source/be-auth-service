@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 
 const uuidV4Stub = jest.fn()
 
@@ -14,6 +14,7 @@ import DocumentsService from '@services/documents'
 
 import { AuthMethod } from '@interfaces/models/authSchema'
 import { ProcessCode } from '@interfaces/services'
+import { DocumentType, EResidency } from '@interfaces/services/documents'
 import { QrCodePayload } from '@interfaces/services/userAuthSteps'
 
 describe('EResidentQrCodeProvider', () => {
@@ -51,7 +52,7 @@ describe('EResidentQrCodeProvider', () => {
             const { token } = qrCodePayload
             const { mobileUid } = headers
             const { user } = testKit.session.getEResidentSession()
-            const eResidency = testKit.docs.getEResidency({
+            const eResidency = testKit.docs.generateDocument<EResidency>(DocumentType.EResidency, {
                 birthDate: user.birthDay,
                 email: user.email,
                 firstNameEN: user.fName,

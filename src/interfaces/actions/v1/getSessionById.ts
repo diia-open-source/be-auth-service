@@ -1,4 +1,4 @@
-import { GetSessionByIdRequest, SessionByIdResponse } from '@generated/auth'
+import { GetSessionByIdRequest, SessionByIdResponse } from '@generated/auth-service'
 
 import { ServiceActionArguments } from '@diia-inhouse/types'
 

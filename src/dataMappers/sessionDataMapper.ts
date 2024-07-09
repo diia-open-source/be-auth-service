@@ -52,8 +52,12 @@ export default class SessionDataMapper {
         const filteredAuthEntryPointHistory: AuthEntryPointHistory[] = authEntryPointHistory.filter(
             (item: AuthEntryPointHistory) => item.authEntryPoint.target !== AuthMethod.PhotoId,
         )
-        const lastAuthEntryPoint = filteredAuthEntryPointHistory[filteredAuthEntryPointHistory.length - 1].authEntryPoint
-        const authType = this.authProviderToAuthType.get(lastAuthEntryPoint.target)
+        const lastAuthEntryPoint = filteredAuthEntryPointHistory.at(-1)?.authEntryPoint
+        if (!lastAuthEntryPoint) {
+            throw new InternalServerError('Could not find last auth entry point in session data')
+        }
+
+        const authType = this.authProviderToAuthType.get(lastAuthEntryPoint?.target)
         if (!authType) {
             throw new InternalServerError(`Caught session with unexpected authentication method [${lastAuthEntryPoint.target}]`)
         }

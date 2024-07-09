@@ -1,8 +1,7 @@
-import { FilterQuery } from 'mongoose'
 import { v4 as uuid } from 'uuid'
 
-import { MongoDBErrorCode } from '@diia-inhouse/db'
-import { ExternalEvent, ExternalEventBus } from '@diia-inhouse/diia-queue'
+import { FilterQuery, MongoDBErrorCode } from '@diia-inhouse/db'
+import { ExternalEventBus } from '@diia-inhouse/diia-queue'
 import { AccessDeniedError, ApiError, ModelNotFoundError } from '@diia-inhouse/errors'
 import { ActHeaders, Logger } from '@diia-inhouse/types'
 import { utils } from '@diia-inhouse/utils'
@@ -11,6 +10,7 @@ import IntegrityChallengeResultService from '@services/integrity/challengeResult
 
 import huaweiIntegrityCheckModel from '@models/integrity/huaweiIntegrityCheck'
 
+import { ExternalEvent } from '@interfaces/application'
 import { ExternalResponseEventError } from '@interfaces/externalEventListeners'
 import { AttestationModel } from '@interfaces/models/integrity/attestation'
 import { GoogleIntegrityCheck } from '@interfaces/models/integrity/googleIntegrityCheck'
@@ -47,10 +47,10 @@ export default class HuaweiIntegrityCheckService implements IntegrityChallengeSe
             const attestation = await huaweiIntegrityCheckModel.create(integrityCheckData)
 
             return attestation.nonce
-        } catch (e) {
-            return utils.handleError(e, (err) => {
-                if (err.getCode() === MongoDBErrorCode.DuplicateKey) {
-                    const { keyValue } = <ApiError & { keyValue: Partial<GoogleIntegrityCheck> }>err
+        } catch (err) {
+            return utils.handleError(err, (apiError) => {
+                if (apiError.getCode() === MongoDBErrorCode.DuplicateKey) {
+                    const { keyValue } = <ApiError & { keyValue: Partial<GoogleIntegrityCheck> }>apiError
                     const duplicatedValues = keyValue
 
                     if (duplicatedValues.mobileUid) {
@@ -58,7 +58,7 @@ export default class HuaweiIntegrityCheckService implements IntegrityChallengeSe
                     }
                 }
 
-                throw err
+                throw apiError
             })
         }
     }
@@ -95,8 +95,8 @@ export default class HuaweiIntegrityCheckService implements IntegrityChallengeSe
             return await this.integrityChallengeResultService.userFailedAttestation(userIdentifier, headers)
         }
 
-        const { basicIntegrity } = integrityResultData
-        const integrityCheck = await this.findIntegrityCheckModeByNonce(integrityResultData.nonce)
+        const { basicIntegrity, nonce } = integrityResultData
+        const integrityCheck = await this.findIntegrityCheckModeByNonce(nonce)
 
         integrityCheck.integrityResultData = integrityResultData
         integrityCheck.error = error

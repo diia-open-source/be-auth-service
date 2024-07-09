@@ -1,11 +1,11 @@
-import { ObjectId } from 'bson'
+import { mongo } from '@diia-inhouse/db'
 
 export interface GetAcquirerIdByHashIdResult {
-    acquirerId: ObjectId
+    acquirerId: mongo.ObjectId
 }
 
 export interface GetServiceEntranceDataByOtpResult {
-    acquirerId: ObjectId
+    acquirerId: mongo.ObjectId
     branchHashId: string
     offerHashId: string
     offerRequestHashId: string

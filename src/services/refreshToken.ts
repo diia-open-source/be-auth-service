@@ -1,19 +1,18 @@
-import { FilterQuery, ObjectId, UpdateQuery, UpdateWriteOpResult } from 'mongoose'
-
 import { IdentifierService } from '@diia-inhouse/crypto'
-import { EventBus, InternalEvent } from '@diia-inhouse/diia-queue'
+import { FilterQuery, Types, UpdateQuery, UpdateWriteOpResult } from '@diia-inhouse/db'
+import { EventBus } from '@diia-inhouse/diia-queue'
 import { ModelNotFoundError, UnauthorizedError } from '@diia-inhouse/errors'
 import { Logger, RefreshToken, SessionType } from '@diia-inhouse/types'
 
 import { GenerateRefreshTokenHelper } from '@src/helpers/generateRefreshToken'
 
-import NotificationService from '@services/notification'
 import PhotoIdAuthRequestService from '@services/photoIdAuthRequest'
 import TokenCacheService from '@services/tokenCache'
 import TokenExpirationService from '@services/tokenExpiration'
 
 import refreshTokenModel from '@models/refreshToken'
 
+import { InternalEvent } from '@interfaces/application'
 import { AppConfig } from '@interfaces/config'
 import { AuthMethod } from '@interfaces/models/authSchema'
 import { RefreshTokenModel, RefreshToken as RefreshTokenToStore } from '@interfaces/models/refreshToken'
@@ -33,21 +32,23 @@ export default class RefreshTokenService {
         private readonly eventBus: EventBus,
 
         private readonly tokenCacheService: TokenCacheService,
-        private readonly notificationService: NotificationService,
         private readonly photoIdAuthRequestService: PhotoIdAuthRequestService,
         private readonly identifier: IdentifierService,
         private readonly tokenExpirationService: TokenExpirationService,
-    ) {}
-
-    private readonly defaultRefreshTokenLifetime: number = this.config.auth.refreshTokenLifetime
-
-    private readonly expirationTimeBySession: Partial<Record<SessionType, number>> = {
-        [SessionType.User]: this.config.auth.refreshTokenLifetime,
-        [SessionType.CabinetUser]: this.config.auth.cabinetRefreshTokenLifetime,
-        [SessionType.EResident]: this.config.auth.refreshTokenLifetime,
-        [SessionType.Partner]: this.config.auth.partnerRefreshTokenLifetime,
-        [SessionType.Acquirer]: this.config.auth.acquirerRefreshTokenLifetime,
+    ) {
+        this.defaultRefreshTokenLifetime = this.config.authService.refreshTokenLifetime
+        this.expirationTimeBySession = {
+            [SessionType.User]: this.config.authService.refreshTokenLifetime,
+            [SessionType.CabinetUser]: this.config.authService.cabinetRefreshTokenLifetime,
+            [SessionType.EResident]: this.config.authService.refreshTokenLifetime,
+            [SessionType.Partner]: this.config.authService.partnerRefreshTokenLifetime,
+            [SessionType.Acquirer]: this.config.authService.acquirerRefreshTokenLifetime,
+        }
     }
+
+    private readonly defaultRefreshTokenLifetime
+
+    private readonly expirationTimeBySession: Partial<Record<SessionType, number>>
 
     async create(
         eisTraceId: string,
@@ -183,7 +184,7 @@ export default class RefreshTokenService {
         const query: FilterQuery<RefreshTokenModel> = { mobileUid, expired: true, isDeleted: { $ne: true } }
         const count: number = await refreshTokenModel.countDocuments(query)
 
-        return !!count
+        return Boolean(count)
     }
 
     async logoutUser(
@@ -224,7 +225,7 @@ export default class RefreshTokenService {
     async serviceEntranceLogout(refreshToken: RefreshToken, mobileUid: string, tokenExp?: number): Promise<void> {
         const { value: refreshTokenValue } = refreshToken
 
-        await this.removeRefreshToken(refreshTokenValue, SessionType.ServiceEntrance, mobileUid, undefined)
+        await this.removeRefreshToken(refreshTokenValue, SessionType.ServiceEntrance, mobileUid)
         await this.tokenCacheService.revokeRefreshToken(
             refreshTokenValue,
             this.tokenExpirationService.revocationExpiration(SessionType.ServiceEntrance, tokenExp),
@@ -238,54 +239,41 @@ export default class RefreshTokenService {
             mobileUid: { $exists: true },
             expirationTime: { $lt: Date.now() },
         }
-        const amountToUnassign: number = await refreshTokenModel.countDocuments(query)
-
-        this.logger.info(`Found [${amountToUnassign}] refresh tokens to unassign users from push tokens`)
-
-        if (!amountToUnassign) {
-            return this.logger.debug('Refresh tokens to unassign users from push tokens are absent')
+        const amountToExpire = await refreshTokenModel.countDocuments(query)
+        if (!amountToExpire) {
+            return
         }
 
+        this.logger.info(`Found [${amountToExpire}] refresh tokens to expire`)
         const docsPerIteration = 1000
-        const iterations: number = amountToUnassign > docsPerIteration ? Math.ceil(amountToUnassign / docsPerIteration) : 1
+        const iterations = amountToExpire > docsPerIteration ? Math.ceil(amountToExpire / docsPerIteration) : 1
         for (let i = 0; i < iterations; i += 1) {
-            const tokens = await refreshTokenModel.find(query, { mobileUid: 1, sessionType: 1 }).limit(docsPerIteration)
-            if (!tokens.length) {
-                this.logger.debug('No more tokens to processing')
+            const tokens = await refreshTokenModel.find<Pick<RefreshTokenModel, '_id'>>(query, { _id: 1 }).limit(docsPerIteration)
+            const expiredIds = tokens.map(({ _id }) => _id)
 
-                break
-            }
-
-            const mobileUidsToUnassignPushTokens: string[] = []
-            const expiredIds: ObjectId[] = []
-
-            tokens.forEach(({ _id, sessionType, mobileUid }: RefreshTokenModel) => {
-                expiredIds.push(_id)
-                if ([SessionType.User, SessionType.EResident, SessionType.EResidentApplicant].includes(sessionType)) {
-                    mobileUidsToUnassignPushTokens.push(mobileUid!)
-                }
-            })
-
-            await Promise.all([
-                this.notificationService.unassignUsersFromPushTokens(mobileUidsToUnassignPushTokens),
-                this.markAsExpired(expiredIds),
-            ])
+            await this.markAsExpired(expiredIds)
         }
 
-        this.logger.info(`Successfully unassign users from push tokens [${amountToUnassign}]`)
+        this.logger.info(`Successfully expire refresh tokens [${amountToExpire}]`)
     }
 
     async isExists(eisTraceId: string, mobileUid: string): Promise<boolean> {
         const query: FilterQuery<RefreshTokenModel> = { eisTraceId, mobileUid, isDeleted: { $ne: true } }
-        const count: number = await refreshTokenModel.countDocuments(query)
+        const count = await refreshTokenModel.countDocuments(query)
 
-        return !!count
+        return Boolean(count)
     }
 
     async getTokensByMobileUid(mobileUid: string): Promise<RefreshTokenModel[]> {
         const query: FilterQuery<RefreshTokenModel> = { mobileUid }
 
         return await refreshTokenModel.find(query)
+    }
+
+    async getLastRefreshToken(mobileUid: string, sessionType: string): Promise<RefreshTokenModel | null> {
+        const query: FilterQuery<RefreshTokenModel> = { mobileUid, sessionType, isDeleted: { $ne: true } }
+
+        return await refreshTokenModel.findOne(query).sort({ _id: -1 })
     }
 
     async removeTokensByMobileUid(mobileUid: string, userIdentifier?: string, sessionType?: SessionType): Promise<void> {
@@ -392,7 +380,7 @@ export default class RefreshTokenService {
         value: string,
         sessionType: SessionType,
         mobileUid: string | undefined,
-        userIdentifier: string | undefined,
+        userIdentifier?: string,
     ): Promise<void> {
         this.logger.info('Logging out')
         const prevTokensQuery: FilterQuery<RefreshTokenModel> = { mobileUid, sessionType, userIdentifier, value: { $ne: value } }
@@ -412,7 +400,11 @@ export default class RefreshTokenService {
         }
     }
 
-    private async markAsExpired(ids: ObjectId[]): Promise<void> {
+    private async markAsExpired(ids: Types.ObjectId[]): Promise<void> {
+        if (ids.length === 0) {
+            return
+        }
+
         await refreshTokenModel.updateMany({ _id: { $in: ids } }, { $set: { expired: true } })
     }
 
@@ -425,7 +417,7 @@ export default class RefreshTokenService {
 
         this.logger.info(`Removed refresh tokens: ${deletedCount}`)
 
-        if (tokens.length) {
+        if (tokens.length > 0) {
             const tasks = tokens.map((token) =>
                 this.tokenCacheService.revokeRefreshToken(
                     token.value,

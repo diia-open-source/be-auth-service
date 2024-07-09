@@ -1,13 +1,10 @@
 import { MoleculerService } from '@diia-inhouse/diia-app'
 
-import { EventBus, InternalEvent } from '@diia-inhouse/diia-queue'
+import { EventBus } from '@diia-inhouse/diia-queue'
 import { ActionVersion, Logger } from '@diia-inhouse/types'
 
-import {
-    CreateNotificationWithPushesByMobileUidParams,
-    GetNotificationByResourceTypeResult,
-    MessageTemplateCode,
-} from '@interfaces/services/notification'
+import { InternalEvent } from '@interfaces/application'
+import { CreateNotificationWithPushesByMobileUidParams, GetNotificationByResourceTypeResult } from '@interfaces/services/notification'
 
 export default class NotificationService {
     constructor(
@@ -20,27 +17,6 @@ export default class NotificationService {
 
     async assignUserToPushToken(mobileUid: string, userIdentifier: string): Promise<void> {
         await this.eventBus.publish(InternalEvent.AuthAssignUserToPushToken, { mobileUid, userIdentifier })
-    }
-
-    async unassignUsersFromPushTokens(mobileUids: string[]): Promise<void> {
-        return await this.moleculer.act(
-            this.serviceName,
-            { name: 'unassignUsersFromPushTokens', actionVersion: ActionVersion.V1 },
-            { params: { mobileUids } },
-        )
-    }
-
-    async createNotificationWithPushes(
-        userIdentifier: string,
-        templateCode: MessageTemplateCode,
-        resourceId: string,
-        excludedMobileUids?: string[],
-    ): Promise<void> {
-        return await this.moleculer.act(
-            this.serviceName,
-            { name: 'createNotificationWithPushes', actionVersion: ActionVersion.V1 },
-            { params: { userIdentifier, templateCode, resourceId, excludedMobileUids } },
-        )
     }
 
     async createNotificationWithPushesByMobileUid(

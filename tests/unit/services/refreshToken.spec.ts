@@ -1,12 +1,7 @@
-const uuidV4Stub = jest.fn()
-
-jest.mock('uuid', () => ({ v4: uuidV4Stub }))
-
-import { FilterQuery } from 'mongoose'
-
 import { IdentifierService } from '@diia-inhouse/crypto'
+import { FilterQuery } from '@diia-inhouse/db'
 import DiiaLogger from '@diia-inhouse/diia-logger'
-import { EventBus, InternalEvent } from '@diia-inhouse/diia-queue'
+import { EventBus } from '@diia-inhouse/diia-queue'
 import { ModelNotFoundError, UnauthorizedError } from '@diia-inhouse/errors'
 import TestKit, { mockInstance } from '@diia-inhouse/test'
 import { SessionType } from '@diia-inhouse/types'
@@ -28,12 +23,12 @@ const refreshTokenModelMock = {
 
 jest.mock('@models/refreshToken', () => refreshTokenModelMock)
 
-import NotificationService from '@services/notification'
 import PhotoIdAuthRequestService from '@services/photoIdAuthRequest'
 import RefreshTokenService from '@services/refreshToken'
 import TokenCacheService from '@services/tokenCache'
 import TokenExpirationService from '@services/tokenExpiration'
 
+import { InternalEvent } from '@interfaces/application'
 import { AppConfig } from '@interfaces/config'
 import { RefreshTokenModel } from '@interfaces/models/refreshToken'
 import { ProcessCode } from '@interfaces/services'
@@ -42,14 +37,13 @@ describe(`${RefreshTokenService.name}`, () => {
     const testKit = new TestKit()
     const headers = testKit.session.getHeaders()
     const config = <AppConfig>(<unknown>{
-        auth: {
+        authService: {
             refreshTokenLifetime: 1000,
         },
     })
     const loggerServiceMock = mockInstance(DiiaLogger)
     const eventBusMock = mockInstance(EventBus)
     const tokenCacheServiceMock = mockInstance(TokenCacheService)
-    const notificationServiceMock = mockInstance(NotificationService)
     const photoIdAuthRequestServiceMock = mockInstance(PhotoIdAuthRequestService)
     const identifierServiceMock = mockInstance(IdentifierService)
     const tokenExpirationServiceMock = mockInstance(TokenExpirationService)
@@ -59,7 +53,6 @@ describe(`${RefreshTokenService.name}`, () => {
         loggerServiceMock,
         eventBusMock,
         tokenCacheServiceMock,
-        notificationServiceMock,
         photoIdAuthRequestServiceMock,
         identifierServiceMock,
         tokenExpirationServiceMock,
@@ -80,10 +73,12 @@ describe(`${RefreshTokenService.name}`, () => {
             const currentDate = Date.now()
 
             jest.spyOn(Date, 'now').mockImplementation(() => currentDate)
-            const token: GenerateRefreshTokenHelper = new GenerateRefreshTokenHelper(config.auth.refreshTokenLifetime)
 
             jest.spyOn(refreshTokenModelMock, 'create').mockResolvedValueOnce({})
-            expect(await refreshTokenService.create(eisTraceId, sessionType, ops, headers)).toMatchObject(token.asPlain())
+            expect(await refreshTokenService.create(eisTraceId, sessionType, ops, headers)).toMatchObject({
+                expirationTime: currentDate + config.authService.refreshTokenLifetime,
+                value: expect.any(String),
+            })
             expect(loggerServiceMock.info).toHaveBeenCalledWith('Refresh token created')
         })
     })
@@ -126,10 +121,10 @@ describe(`${RefreshTokenService.name}`, () => {
                 login: 'login',
                 prolongLifetime: true,
             }
-            const newToken: GenerateRefreshTokenHelper = new GenerateRefreshTokenHelper(config.auth.refreshTokenLifetime)
+            const refreshToken: GenerateRefreshTokenHelper = new GenerateRefreshTokenHelper(config.authService.refreshTokenLifetime)
 
-            const refreshToken = {
-                expirationDate: new Date(newToken.expirationTime),
+            const refreshTokenModel = {
+                expirationDate: new Date(refreshToken.expirationTime),
                 mobileUid: ops.mobileUid,
                 entityId: ops.entityId,
                 login: ops.login,
@@ -139,13 +134,16 @@ describe(`${RefreshTokenService.name}`, () => {
                 isDeleted: false,
                 authEntryPoint: ops.authEntryPoint,
                 authEntryPointHistory: [{ authEntryPoint: ops.authEntryPoint, date: new Date() }],
-                value: newToken.value,
-                expirationTime: newToken.expirationTime,
+                value: refreshToken.value,
+                expirationTime: refreshToken.expirationTime,
                 save: jest.fn(),
             }
 
-            jest.spyOn(refreshTokenModelMock, 'findOne').mockResolvedValueOnce(refreshToken)
-            expect(await refreshTokenService.refresh(refreshTokenValue, sessionType, ops, headers)).toMatchObject(newToken)
+            jest.spyOn(refreshTokenModelMock, 'findOne').mockResolvedValueOnce(refreshTokenModel)
+            expect(await refreshTokenService.refresh(refreshTokenValue, sessionType, ops, headers)).toMatchObject({
+                ...refreshToken,
+                value: expect.any(String),
+            })
             expect(loggerServiceMock.info).toHaveBeenCalledWith('Refreshing token')
         })
     })
@@ -273,7 +271,6 @@ describe(`${RefreshTokenService.name}`, () => {
                 localLoggerServiceMock,
                 eventBusMock,
                 tokenCacheServiceMock,
-                notificationServiceMock,
                 photoIdAuthRequestServiceMock,
                 identifierServiceMock,
                 tokenExpirationServiceMock,
@@ -322,7 +319,6 @@ describe(`${RefreshTokenService.name}`, () => {
                 localLoggerServiceMock,
                 eventBusMock,
                 tokenCacheServiceMock,
-                notificationServiceMock,
                 photoIdAuthRequestServiceMock,
                 identifierServiceMock,
                 tokenExpirationServiceMock,
@@ -392,16 +388,11 @@ describe(`${RefreshTokenService.name}`, () => {
 
     describe('method: `checkRefreshTokensExpiration`', () => {
         it('should stop checking expiration if refresh tokens not found', async () => {
-            const amountToUnassign = 0
+            const amountToExpire = 0
 
-            jest.spyOn(refreshTokenModelMock, 'countDocuments').mockResolvedValueOnce(amountToUnassign)
+            jest.spyOn(refreshTokenModelMock, 'countDocuments').mockResolvedValueOnce(amountToExpire)
 
-            await refreshTokenService.checkRefreshTokensExpiration()
-
-            expect(loggerServiceMock.info).toHaveBeenCalledWith(
-                `Found [${amountToUnassign}] refresh tokens to unassign users from push tokens`,
-            )
-            expect(loggerServiceMock.debug).toHaveBeenCalledWith('Refresh tokens to unassign users from push tokens are absent')
+            await expect(refreshTokenService.checkRefreshTokensExpiration()).resolves.toBeUndefined()
         })
 
         it('should stop iterating when tokens', async () => {
@@ -413,7 +404,7 @@ describe(`${RefreshTokenService.name}`, () => {
 
             await refreshTokenService.checkRefreshTokensExpiration()
 
-            expect(loggerServiceMock.debug).toHaveBeenCalledWith('No more tokens to processing')
+            expect(loggerServiceMock.info).toHaveBeenCalledWith(`Successfully expire refresh tokens [${amountToUnassign}]`)
         })
 
         it('should successfully unassign users from push tokens', async () => {
@@ -433,12 +424,11 @@ describe(`${RefreshTokenService.name}`, () => {
             jest.spyOn(refreshTokenModelMock, 'countDocuments').mockResolvedValueOnce(amountToUnassign)
             jest.spyOn(refreshTokenModelMock, 'find').mockReturnThis()
             jest.spyOn(refreshTokenModelMock, 'limit').mockResolvedValueOnce(tokens)
-            jest.spyOn(notificationServiceMock, 'unassignUsersFromPushTokens').mockResolvedValueOnce()
             jest.spyOn(refreshTokenModelMock, 'updateMany').mockResolvedValueOnce(null)
 
             await refreshTokenService.checkRefreshTokensExpiration()
 
-            expect(loggerServiceMock.info).toHaveBeenCalledWith(`Successfully unassign users from push tokens [${amountToUnassign}]`)
+            expect(loggerServiceMock.info).toHaveBeenCalledWith(`Successfully expire refresh tokens [${amountToUnassign}]`)
         })
     })
 

@@ -1,8 +1,6 @@
-import { ObjectId } from 'bson'
-
-import { PartnerScopes } from '@diia-inhouse/types'
+import { mongo } from '@diia-inhouse/db'
 
 export interface GetPartnerResult {
-    _id: ObjectId
-    scopes: PartnerScopes
+    _id: mongo.ObjectId
+    scopes: Record<string, string[]>
 }

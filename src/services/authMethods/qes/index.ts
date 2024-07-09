@@ -23,7 +23,7 @@ export default class QesProvider implements AuthProviderFactory {
     async requestAuthorizationUrl(_: AuthUrlOps, headers: AuthProviderHeaders): Promise<string> {
         const deviceUuid = headers.mobileUid
         const requestId = uuidv4()
-        const { nonceCacheTtl } = this.config.auth.schema.schemaMap[AuthSchemaCode.CabinetAuthorization]
+        const { nonceCacheTtl } = this.config.authService.schema.schemaMap[AuthSchemaCode.CabinetAuthorization]
 
         if (!nonceCacheTtl) {
             throw new BadRequestError('NonceTTL is not defined')

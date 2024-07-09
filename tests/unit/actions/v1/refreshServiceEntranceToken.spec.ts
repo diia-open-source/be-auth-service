@@ -1,4 +1,5 @@
 import { AuthService } from '@diia-inhouse/crypto'
+import { mongo } from '@diia-inhouse/db'
 import TestKit, { mockInstance } from '@diia-inhouse/test'
 import { ServiceEntranceTokenData, SessionType, VerifiedBaseTokenData } from '@diia-inhouse/types'
 
@@ -28,7 +29,7 @@ describe(`Action ${RefreshServiceEntranceTokenAction.name}`, () => {
             const mockValidationData: VerifiedBaseTokenData<ServiceEntranceTokenData> = {
                 sessionType: SessionType.ServiceEntrance,
                 exp: 1000,
-                acquirerId: Object('acquirerId'),
+                acquirerId: new mongo.ObjectId(),
                 branchHashId: 'string',
                 offerHashId: 'string',
                 offerRequestHashId: 'string',

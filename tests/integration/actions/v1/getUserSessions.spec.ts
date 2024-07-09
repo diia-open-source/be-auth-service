@@ -1,6 +1,6 @@
 import { v4 as uuid } from 'uuid'
 
-import TestKit from '@diia-inhouse/test/*'
+import TestKit from '@diia-inhouse/test'
 import { PlatformType } from '@diia-inhouse/types'
 
 import GetUserSessionsAction from '@src/actions/v1/getUserSessions'
@@ -27,7 +27,6 @@ describe(`Action ${GetUserSessionsAction.name}`, () => {
         getUserSessionsAction = app.container.build(GetUserSessionsAction)
         testKit = app.container.resolve('testKit')
         bankService = app.container.resolve<BankService>('bankService')
-        await app.start()
     })
 
     afterAll(async () => {

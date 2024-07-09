@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 
 const uuidV4Stub = jest.fn()
 
@@ -36,6 +36,7 @@ describe('EmailOtpProvider', () => {
         eResident: {
             otpLength: 4,
             otpTtlInSeconds: 30,
+            // eslint-disable-next-line unicorn/better-regex
             testEmailRegExp: /test-eresident-applicant-\{\d+\}@email.c/,
             testOtp: '1111',
         },

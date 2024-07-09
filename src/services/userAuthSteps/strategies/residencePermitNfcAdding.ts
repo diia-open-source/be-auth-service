@@ -1,6 +1,6 @@
 import { CryptoService, DocumentDecryptedData } from '@diia-inhouse/crypto'
 import { BadRequestError } from '@diia-inhouse/errors'
-import { DocumentType, Logger } from '@diia-inhouse/types'
+import { Logger } from '@diia-inhouse/types'
 import { utils } from '@diia-inhouse/utils'
 
 import AuthService from '@services/auth'
@@ -12,6 +12,7 @@ import { AuthMethod, AuthSchemaCondition } from '@interfaces/models/authSchema'
 import { UserAuthStepsStatus } from '@interfaces/models/userAuthSteps'
 import { ProcessCode } from '@interfaces/services'
 import { NfcUserDTO } from '@interfaces/services/authMethods/nfc'
+import { DocumentType } from '@interfaces/services/documents'
 import { MessageTemplateCode } from '@interfaces/services/notification'
 import { AuthSchemaStrategy, AuthStepsStatusToAuthMethodProcessCode, AuthStrategyVerifyOptions } from '@interfaces/services/userAuthSteps'
 
@@ -53,7 +54,7 @@ export default class ResidencePermitNfcAddingStrategyService implements AuthSche
         const userData: NfcUserDTO = <NfcUserDTO>await this.authService.verify(method, '', { headers, user })
 
         const residencePermitEncryptionData: DocumentDecryptedData = { id: userData.docNumber }
-        const documentType = utils.camelCaseToDocumentType[userData.docType]
+        const documentType = <DocumentType>utils.camelCaseToDocumentType(userData.docType)
 
         switch (method) {
             case AuthMethod.Nfc: {
@@ -65,11 +66,10 @@ export default class ResidencePermitNfcAddingStrategyService implements AuthSche
                 ])
 
                 const hasDocumentInRegistry = await this.documentsService.hasDocumentInRegistry(documentType, user)
-                if (hasDocumentInRegistry) {
-                    await this.notifyResidencePermitAdded(userIdentifier, documentType, mobileUid)
-                } else {
-                    await this.notifyResidencePermitNotFound(userIdentifier, documentType, mobileUid)
-                }
+
+                await (hasDocumentInRegistry
+                    ? this.notifyResidencePermitAdded(userIdentifier, documentType, mobileUid)
+                    : this.notifyResidencePermitNotFound(userIdentifier, documentType, mobileUid))
 
                 return []
             }

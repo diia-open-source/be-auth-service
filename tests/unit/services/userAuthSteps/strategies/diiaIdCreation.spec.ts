@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 
 import DiiaLogger from '@diia-inhouse/diia-logger'
 import { EnvService } from '@diia-inhouse/env'
@@ -28,7 +28,7 @@ describe('DiiaIdCreationStrategyService', () => {
     const requestId = randomUUID()
     const processId = randomUUID()
     const config = <AppConfig>{
-        auth: {
+        authService: {
             schema: {
                 comparingItnIsEnabled: true,
             },
@@ -176,7 +176,10 @@ describe('DiiaIdCreationStrategyService', () => {
                     authMethodParams: { bankId },
                 } = options
                 const diiaIdCreationStrategyService = new DiiaIdCreationStrategyService(
-                    { ...config, auth: { ...config.auth, schema: { ...config.auth.schema, comparingItnIsEnabled: false } } },
+                    {
+                        ...config,
+                        authService: { ...config.authService, schema: { ...config.authService.schema, comparingItnIsEnabled: false } },
+                    },
                     logger,
                     envService,
                     userAuthTokenService,

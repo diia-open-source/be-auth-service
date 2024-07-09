@@ -1,6 +1,8 @@
-import { EventBusListener, ScheduledTaskEvent } from '@diia-inhouse/diia-queue'
+import { EventBusListener } from '@diia-inhouse/diia-queue'
 
 import BankService from '@services/bank'
+
+import { ScheduledTaskEvent } from '@interfaces/application'
 
 export default class AuthUpdateBankIdBankListCronTask implements EventBusListener {
     constructor(private bankService: BankService) {}

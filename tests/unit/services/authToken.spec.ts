@@ -1,10 +1,9 @@
-import { randomUUID } from 'crypto'
-
-import { ObjectId } from 'bson'
+import { randomUUID } from 'node:crypto'
 
 import { AuthService, IdentifierService } from '@diia-inhouse/crypto'
+import { mongo } from '@diia-inhouse/db'
 import DiiaLogger from '@diia-inhouse/diia-logger'
-import { EventBus, InternalEvent } from '@diia-inhouse/diia-queue'
+import { EventBus } from '@diia-inhouse/diia-queue'
 import {
     AccessDeniedError,
     ApiError,
@@ -15,15 +14,7 @@ import {
     UnauthorizedError,
 } from '@diia-inhouse/errors'
 import TestKit, { mockInstance } from '@diia-inhouse/test'
-import {
-    PartnerPaymentScope,
-    PartnerScopeType,
-    PortalUser,
-    PortalUserPetitionPermissions,
-    PortalUserPollPermissions,
-    PortalUserTokenData,
-    SessionType,
-} from '@diia-inhouse/types'
+import { PortalUser, PortalUserPetitionPermissions, PortalUserPollPermissions, PortalUserTokenData, SessionType } from '@diia-inhouse/types'
 import { utils } from '@diia-inhouse/utils'
 
 import Utils from '@src/utils'
@@ -42,6 +33,7 @@ import VoteService from '@services/vote'
 
 import { generateItn } from '@tests/mocks/randomData'
 
+import { InternalEvent } from '@interfaces/application'
 import { AppConfig } from '@interfaces/config'
 import { RefreshTokenModel } from '@interfaces/models/refreshToken'
 
@@ -53,8 +45,6 @@ describe(`${AuthTokenService.name}`, () => {
             testItn,
         },
         auth: {
-            testAuthByItnIsEnabled: true,
-            checkingForValidItnIsEnabled: true,
             jwk: randomUUID(),
             jwt: {
                 privateKey: randomUUID(),
@@ -68,6 +58,10 @@ describe(`${AuthTokenService.name}`, () => {
                     ignoreExpiration: false,
                 },
             },
+        },
+        authService: {
+            testAuthByItnIsEnabled: true,
+            checkingForValidItnIsEnabled: true,
         },
         fld: {
             certFilePath: 'secrets/fld-config.key',
@@ -116,7 +110,7 @@ describe(`${AuthTokenService.name}`, () => {
 
     describe('method: `getAcquirerAuthToken`', () => {
         it('should return acquirer auth token', async () => {
-            const acquirerId: ObjectId = new ObjectId()
+            const acquirerId = new mongo.ObjectId()
             const mockRefreshToken = { value: 'test-value', expirationTime: 1000 }
             const mockToken = 'token'
 
@@ -155,10 +149,10 @@ describe(`${AuthTokenService.name}`, () => {
 
     describe('method: `getPartnerAcquirerAuthToken`', () => {
         it('should return partner acquirer auth token', async () => {
-            const acquirerId: ObjectId = new ObjectId()
+            const acquirerId = new mongo.ObjectId()
             const mockRefreshToken = { value: 'test-value', expirationTime: 1000 }
             const mockToken = 'token'
-            const mockPartnerId: ObjectId = new ObjectId()
+            const mockPartnerId = new mongo.ObjectId()
 
             jest.spyOn(mockDocumentAcquirersService, 'getAcquirerIdByHashId').mockResolvedValueOnce({ acquirerId })
 
@@ -180,7 +174,7 @@ describe(`${AuthTokenService.name}`, () => {
         it('should throw UnauthorizedError if acquirer not found by the provided id', async () => {
             jest.spyOn(mockDocumentAcquirersService, 'getAcquirerIdByHashId').mockRejectedValueOnce(new NotFoundError())
 
-            const mockPartnerId: ObjectId = new ObjectId()
+            const mockPartnerId = new mongo.ObjectId()
 
             await expect(authTokenService.getPartnerAcquirerAuthToken('acquirerHashId', mockPartnerId, 'traceId')).rejects.toEqual(
                 new UnauthorizedError(`Acquirer not found by the provided id acquirerHashId`),
@@ -190,12 +184,12 @@ describe(`${AuthTokenService.name}`, () => {
 
     describe('method: `getPartnerAuthToken`', () => {
         it('should return partner auth token', async () => {
-            const partnerId: ObjectId = new ObjectId()
+            const partnerId = new mongo.ObjectId()
             const mockRefreshToken = { value: 'test-value', expirationTime: 1000 }
             const mockPartnerToken = {
                 _id: partnerId,
                 scopes: {
-                    [PartnerScopeType.payment]: [PartnerPaymentScope.Debt, PartnerPaymentScope.Penalty],
+                    payment: ['debt', 'penalty'],
                 },
             }
             const mockToken = 'token'
@@ -221,7 +215,7 @@ describe(`${AuthTokenService.name}`, () => {
             jest.spyOn(mockPartnerService, 'getPartnerByToken').mockRejectedValueOnce(new NotFoundError())
 
             await expect(authTokenService.getPartnerAuthToken('partnerToken', 'traceId')).rejects.toEqual(
-                new ModelNotFoundError(`Partner not found by the provided token`, 'partnerToken', {}, undefined, ErrorType.Operated),
+                new ModelNotFoundError('Partner', 'partnerToken', {}, undefined, ErrorType.Operated),
             )
         })
 
@@ -367,6 +361,7 @@ describe(`${AuthTokenService.name}`, () => {
         it('should delete user sessions data', async () => {
             const mockRefreshTokens: RefreshTokenModel[] = [<RefreshTokenModel>{ value: 'value1', sessionType: SessionType.PortalUser }]
             const mockMobileUuid = randomUUID()
+            const userIdentifier = randomUUID()
 
             jest.spyOn(mockRefreshTokenService, 'getTokensByMobileUid').mockResolvedValueOnce(mockRefreshTokens)
 
@@ -377,16 +372,16 @@ describe(`${AuthTokenService.name}`, () => {
             jest.spyOn(mockRefreshTokenService, 'removeTokensByMobileUid').mockResolvedValueOnce()
             jest.spyOn(mockEventBus, 'publish').mockResolvedValueOnce(true)
 
-            await authTokenService.clearUserSessionData('identifier', mockMobileUuid)
+            await authTokenService.clearUserSessionData(userIdentifier, mockMobileUuid)
             expect(mockRefreshTokenService.getTokensByMobileUid).toHaveBeenCalledWith(mockMobileUuid)
             expect(mockTokenCacheService.revokeRefreshToken).toHaveBeenCalledWith(mockRefreshTokens[0].value, 0)
             expect(mockTokenExpirationService.getTokenExpirationInSecondsBySessionType).toHaveBeenCalledWith(SessionType.PortalUser)
 
             expect(mockPhotoIdAuthRequestService.deleteByMobileUid).toHaveBeenCalledWith(mockMobileUuid)
-            expect(mockRefreshTokenService.removeTokensByMobileUid).toHaveBeenCalledWith(mockMobileUuid)
+            expect(mockRefreshTokenService.removeTokensByMobileUid).toHaveBeenCalledWith(mockMobileUuid, userIdentifier)
             expect(mockEventBus.publish).toHaveBeenCalledWith(InternalEvent.AuthUserLogOut, {
                 mobileUid: mockMobileUuid,
-                userIdentifier: 'identifier',
+                userIdentifier,
             })
         })
 
@@ -418,7 +413,7 @@ describe(`${AuthTokenService.name}`, () => {
             const itn: string = generateItn()
             const copyConfig = structuredClone(config)
 
-            copyConfig.auth.checkingForValidItnIsEnabled = false
+            copyConfig.authService.checkingForValidItnIsEnabled = false
 
             const newAuthTokenService = new AuthTokenService(
                 copyConfig,
@@ -448,7 +443,7 @@ describe(`${AuthTokenService.name}`, () => {
             const itn: string = generateItn()
             const copyConfig = structuredClone(config)
 
-            copyConfig.auth.checkingForValidItnIsEnabled = true
+            copyConfig.authService.checkingForValidItnIsEnabled = true
             copyConfig.applicationStoreReview.testItn = itn
 
             const newAuthTokenService = new AuthTokenService(
@@ -479,8 +474,7 @@ describe(`${AuthTokenService.name}`, () => {
             const itn = '0000000000'
             const copyConfig = structuredClone(config)
 
-            copyConfig.auth.checkingForValidItnIsEnabled = true
-            copyConfig.applicationStoreReview.testItn = undefined
+            copyConfig.authService.checkingForValidItnIsEnabled = true
 
             const newAuthTokenService = new AuthTokenService(
                 copyConfig,
@@ -511,8 +505,7 @@ describe(`${AuthTokenService.name}`, () => {
             const itn = 'ddd555'
             const copyConfig = structuredClone(config)
 
-            copyConfig.auth.checkingForValidItnIsEnabled = true
-            copyConfig.applicationStoreReview.testItn = undefined
+            copyConfig.authService.checkingForValidItnIsEnabled = true
 
             const newAuthTokenService = new AuthTokenService(
                 copyConfig,

@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 
 const Endpoint = {
     PERSONAL_AUTH_REQUEST: '/auth',

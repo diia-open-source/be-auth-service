@@ -1,7 +1,6 @@
-import { ObjectId } from 'bson'
-
 import { MoleculerService } from '@diia-inhouse/diia-app'
 
+import { mongo } from '@diia-inhouse/db'
 import { mockInstance } from '@diia-inhouse/test'
 import { ActionVersion, SessionType } from '@diia-inhouse/types'
 
@@ -12,7 +11,7 @@ import { OfferRequestType } from '@interfaces/services/documentAcquirers'
 
 describe(`${DocumentAcquirersService.name}`, () => {
     const config = <AppConfig>(<unknown>{
-        auth: {
+        authService: {
             diiaSignature: {
                 acquirerToken: 'acquirerToken',
                 branchId: 'branchId',
@@ -32,7 +31,7 @@ describe(`${DocumentAcquirersService.name}`, () => {
     describe('method: `getAcquirerIdByToken`', () => {
         it('should return acquirer id', async () => {
             const mockAcquirerToken = 'acquirerToken'
-            const mockAcquirerId: ObjectId = new ObjectId()
+            const mockAcquirerId = new mongo.ObjectId()
 
             jest.spyOn(mockMoleculerService, 'act').mockResolvedValueOnce(mockAcquirerId)
 
@@ -49,8 +48,8 @@ describe(`${DocumentAcquirersService.name}`, () => {
     describe('method: `getAcquirerIdByHashId`', () => {
         it('should return acquirer id', async () => {
             const mockAcquirerHashId = 'acquirerHashId'
-            const mockAcquirerId: ObjectId = new ObjectId()
-            const mockPartnerId: ObjectId = new ObjectId()
+            const mockAcquirerId = new mongo.ObjectId()
+            const mockPartnerId = new mongo.ObjectId()
 
             jest.spyOn(mockMoleculerService, 'act').mockResolvedValueOnce(mockAcquirerId)
 
@@ -68,7 +67,7 @@ describe(`${DocumentAcquirersService.name}`, () => {
         it('should return otp object', async () => {
             const mockOtp = 'otp'
             const mockOtpResult = {
-                acquirerId: new ObjectId(),
+                acquirerId: new mongo.ObjectId(),
                 branchHashId: 'branchHashId',
                 offerHashId: 'offerHashId',
                 offerRequestHashId: 'offerRequestHashId',
@@ -93,8 +92,8 @@ describe(`${DocumentAcquirersService.name}`, () => {
             const mockOfferRequest = {
                 deeplink: 'deeplink',
             }
-            const mockAcquirerId = new ObjectId()
-            const { branchId, offerId, acquirerToken } = config.auth.diiaSignature
+            const mockAcquirerId = new mongo.ObjectId()
+            const { branchId, offerId, acquirerToken } = config.authService.diiaSignature
 
             jest.spyOn(documentAcquirersService, 'getAcquirerIdByToken').mockResolvedValueOnce(mockAcquirerId)
             jest.spyOn(mockMoleculerService, 'act').mockResolvedValueOnce(mockOfferRequest)

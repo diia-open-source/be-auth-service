@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/no-useless-undefined */
 import { RedlockMutex } from 'redis-semaphore'
 
 import DiiaLogger from '@diia-inhouse/diia-logger'

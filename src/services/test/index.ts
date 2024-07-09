@@ -9,7 +9,6 @@ import {
     AuthEntryPoint,
     Gender,
     Logger,
-    RefreshToken,
     SessionType,
     User,
     UserTokenData,
@@ -27,7 +26,7 @@ import UserService from '@services/user'
 import UserAuthTokenService from '@services/userAuthToken'
 
 import { AppConfig } from '@interfaces/config'
-import { ProvidedUserData, testTarget } from '@interfaces/services/test'
+import { GetUserTokenOps, ProvidedUserData, testTarget } from '@interfaces/services/test'
 import { GenerateTokenResult } from '@interfaces/services/userAuthToken'
 
 export default class TestAuthTokenService {
@@ -48,9 +47,14 @@ export default class TestAuthTokenService {
         private readonly refreshTokenService: RefreshTokenService,
     ) {}
 
-    async getUserToken(requestId: string, headers: AppUserActionHeaders, providedUserData: ProvidedUserData): Promise<GenerateTokenResult> {
+    async getUserToken(
+        requestId: string,
+        headers: AppUserActionHeaders,
+        providedUserData: ProvidedUserData,
+        { skipLogoutEvent }: GetUserTokenOps = {},
+    ): Promise<GenerateTokenResult> {
         const { mobileUid, traceId, platformType, platformVersion, appVersion } = headers
-        if (this.config.auth.testAuthByItnIsEnabled === false) {
+        if (this.config.authService.testAuthByItnIsEnabled === false) {
             this.logger.info('Provider test is not implemented')
 
             throw new BadRequestError('Validation failed')
@@ -58,16 +62,16 @@ export default class TestAuthTokenService {
 
         this.logger.info('Start receiving test token', { requestId, mobileUid, traceId, providedUserData })
 
-        const user: User = this.getTestData(requestId, providedUserData)
+        const user = this.getTestData(requestId, providedUserData)
 
         const { birthDay, itn } = user
-        const identifier: string = this.identifier.createIdentifier(itn)
+        const identifier = this.identifier.createIdentifier(itn)
 
-        await this.authTokenService.clearUserSessionData(identifier, mobileUid)
+        await this.authTokenService.clearUserSessionData(identifier, mobileUid, skipLogoutEvent)
 
         await this.eisVerifierService.verify(requestId, headers)
 
-        const sessionType: SessionType = SessionType.User
+        const sessionType = SessionType.User
         const authEntryPoint: AuthEntryPoint = {
             target: testTarget,
             isBankId: false,
@@ -75,7 +79,7 @@ export default class TestAuthTokenService {
 
         const customLifetime = await this.customRefreshTokenExpirationService.getByPlatformTypeAndAppVersion(platformType, appVersion)
 
-        const refreshToken: RefreshToken = await this.refreshTokenService.create(
+        const refreshToken = await this.refreshTokenService.create(
             traceId,
             sessionType,
             { mobileUid, authEntryPoint, customLifetime, userIdentifier: identifier },
@@ -125,9 +129,9 @@ export default class TestAuthTokenService {
 
         this.authTokenService.checkForValidItn(itn)
 
-        const token: string = await this.auth.getJweInJwt(tokenData)
+        const token = await this.auth.getJweInJwt(tokenData)
 
-        const tasks: Promise<void>[] = [this.notificationService.assignUserToPushToken(mobileUid, identifier)]
+        const tasks = [this.notificationService.assignUserToPushToken(mobileUid, identifier)]
         if (this.appUtils.findDateFormat(birthDay) && !this.envService.isProd()) {
             tasks.push(this.userService.createOrUpdateProfile(tokenData, headers, SessionType.User))
         } else {
@@ -163,35 +167,51 @@ export default class TestAuthTokenService {
 
         const providedUserDataKeys = <(keyof ProvidedUserData)[]>(<unknown>Object.keys(providedUserData))
 
-        providedUserDataKeys.forEach((key) => {
+        for (const key of providedUserDataKeys) {
             const userValue = providedUserData[key]
             if (!userValue) {
                 if (this.isNoMockField(key)) {
                     testData[key] = ''
                 }
 
-                return
+                continue
             }
 
-            if (key === 'birthDay') {
-                testData[key] = this.appUtils.normalizeBirthDay(userValue)
-            } else if (key === 'document') {
-                const documentType: AuthDocumentType = this.appUtils.getDocumentType(userValue)
-                const document: AuthDocument = {
-                    value: this.appUtils.normalizeDocumentValue(userValue, documentType),
-                    type: documentType,
+            switch (key) {
+                case 'birthDay': {
+                    testData[key] = this.appUtils.normalizeBirthDay(userValue)
+
+                    break
                 }
+                case 'document': {
+                    const documentType: AuthDocumentType = this.appUtils.getDocumentType(userValue)
+                    const document: AuthDocument = {
+                        value: this.appUtils.normalizeDocumentValue(userValue, documentType),
+                        type: documentType,
+                    }
 
-                testData[key] = document
-                testData.passport = document.value
-            } else if (key === 'fName' || key === 'lName' || key === 'mName') {
-                testData[key] = utils.capitalizeName(userValue)
-            } else if (key === 'gender') {
-                testData[key] = providedUserData[key]!
-            } else {
-                testData[key] = providedUserData[key]!
+                    testData[key] = document
+                    testData.passport = document.value
+
+                    break
+                }
+                case 'fName':
+                case 'lName':
+                case 'mName': {
+                    testData[key] = utils.capitalizeName(userValue)
+
+                    break
+                }
+                case 'gender': {
+                    testData[key] = providedUserData[key]!
+
+                    break
+                }
+                default: {
+                    testData[key] = providedUserData[key]!
+                }
             }
-        })
+        }
 
         return testData
     }

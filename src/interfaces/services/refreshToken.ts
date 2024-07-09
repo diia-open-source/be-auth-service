@@ -1,4 +1,4 @@
-import { SetRequired } from 'type-fest'
+import type { SetRequired } from 'type-fest'
 
 import { ActHeaders, AuthEntryPoint, PlatformType } from '@diia-inhouse/types'
 

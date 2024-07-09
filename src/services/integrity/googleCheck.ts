@@ -1,8 +1,7 @@
-import { FilterQuery } from 'mongoose'
 import { v4 as uuid } from 'uuid'
 
-import { MongoDBErrorCode } from '@diia-inhouse/db'
-import { ExternalEvent, ExternalEventBus } from '@diia-inhouse/diia-queue'
+import { FilterQuery, MongoDBErrorCode } from '@diia-inhouse/db'
+import { ExternalEventBus } from '@diia-inhouse/diia-queue'
 import { AccessDeniedError, ApiError, ModelNotFoundError } from '@diia-inhouse/errors'
 import { ActHeaders, Logger } from '@diia-inhouse/types'
 import { utils } from '@diia-inhouse/utils'
@@ -11,6 +10,7 @@ import IntegrityChallengeResultService from '@services/integrity/challengeResult
 
 import googleIntegrityCheckModel from '@models/integrity/googleIntegrityCheck'
 
+import { ExternalEvent } from '@interfaces/application'
 import { ExternalResponseEventError } from '@interfaces/externalEventListeners'
 import { AttestationModel } from '@interfaces/models/integrity/attestation'
 import {
@@ -46,10 +46,10 @@ export default class GoogleIntegrityCheckService implements IntegrityChallengeSe
             const attestation = await googleIntegrityCheckModel.create(integrityCheckData)
 
             return attestation.nonce
-        } catch (e) {
-            return utils.handleError(e, (err) => {
-                if (err.getCode() === MongoDBErrorCode.DuplicateKey) {
-                    const { keyValue } = <ApiError & { keyValue: Partial<GoogleIntegrityCheck> }>err
+        } catch (err) {
+            return utils.handleError(err, (apiError) => {
+                if (apiError.getCode() === MongoDBErrorCode.DuplicateKey) {
+                    const { keyValue } = <ApiError & { keyValue: Partial<GoogleIntegrityCheck> }>apiError
                     const duplicatedValues = keyValue
 
                     if (duplicatedValues.mobileUid) {
@@ -57,7 +57,7 @@ export default class GoogleIntegrityCheckService implements IntegrityChallengeSe
                     }
                 }
 
-                throw err
+                throw apiError
             })
         }
     }

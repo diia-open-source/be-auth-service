@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 
 const uuidV4Stub = jest.fn()
 
@@ -15,7 +15,7 @@ import NfcService from '@services/nfc'
 
 import { ProcessCode } from '@interfaces/services'
 import { NfcUserDTO } from '@interfaces/services/authMethods/nfc'
-import { EResidencyCountryInfo } from '@interfaces/services/documents'
+import { DocumentType, EResidency, EResidencyCountryInfo } from '@interfaces/services/documents'
 
 describe('EResidentNfcProvider', () => {
     const testKit = new TestKit()
@@ -55,7 +55,7 @@ describe('EResidentNfcProvider', () => {
             const { mobileUid } = headers
 
             const { user } = testKit.session.getEResidentSession()
-            const eResidency = testKit.docs.getEResidency({
+            const eResidency = testKit.docs.generateDocument<EResidency>(DocumentType.EResidency, {
                 birthDate: user.birthDay,
                 email: user.email,
                 firstNameEN: user.fName,

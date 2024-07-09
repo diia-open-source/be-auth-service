@@ -1,10 +1,8 @@
 import { UserActionArguments } from '@diia-inhouse/types'
 
-import { SchemaCode } from '@interfaces/services/userAuthSteps'
-
 export interface CustomActionArguments extends UserActionArguments {
     params: {
-        schemaCode: SchemaCode
+        schemaCode: string
         processId: string
     }
 }

@@ -1,6 +1,5 @@
-import { DocumentTypeCamelCase } from '@diia-inhouse/types'
-
 import { GenderAsSex } from '@interfaces/services/authMethods'
+import { DocumentTypeCamelCase } from '@interfaces/services/documents'
 
 export interface NfcUserDTO {
     docType: DocumentTypeCamelCase

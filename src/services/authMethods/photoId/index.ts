@@ -10,9 +10,11 @@ export default class PhotoIdProvider implements AuthProviderFactory {
     constructor(
         private readonly config: AppConfig,
         private readonly photoIdAuthRequestService: PhotoIdAuthRequestService,
-    ) {}
+    ) {
+        this.host = this.config.photoId.authUrlHost
+    }
 
-    private readonly host = this.config.photoId.authUrlHost
+    private readonly host
 
     async requestAuthorizationUrl({ userIdentifier }: AuthUrlOps, { mobileUid }: AuthProviderHeaders): Promise<string> {
         if (!userIdentifier) {

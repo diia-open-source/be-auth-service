@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 
 import { IdentifierService } from '@diia-inhouse/crypto'
 import { AccessDeniedError } from '@diia-inhouse/errors'
@@ -82,7 +82,7 @@ describe('EResidentApplicantAuthStrategyService', () => {
                 requestId,
             }
 
-            jest.spyOn(authService, 'verify').mockRejectedValueOnce(new Error())
+            jest.spyOn(authService, 'verify').mockRejectedValueOnce(new Error('Otp is invalid or expired'))
 
             await expect(async () => {
                 await eResidentApplicantAuthStrategyService.verify(options)

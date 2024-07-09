@@ -1,16 +1,8 @@
-import { FilterQuery, UpdateQuery } from 'mongoose'
 import { v4 as uuid } from 'uuid'
 
+import { FilterQuery, UpdateQuery } from '@diia-inhouse/db'
 import { AccessDeniedError, BadRequestError, InternalServerError, ModelNotFoundError, UnprocessableEntityError } from '@diia-inhouse/errors'
-import {
-    AppUser,
-    DocumentType,
-    Logger,
-    PublicServiceKebabCaseCode,
-    ResidentshipStatus,
-    SessionType,
-    UserTokenData,
-} from '@diia-inhouse/types'
+import { AppUser, Logger, SessionType, UserTokenData } from '@diia-inhouse/types'
 import { utils } from '@diia-inhouse/utils'
 
 import ProcessCodeDefinerService from './processCodeDefiner'
@@ -49,6 +41,7 @@ import { AdmissionSchema, AuthMethod, AuthSchema, AuthSchemaCode, AuthSchemaMeth
 import { UserAuthStep, UserAuthSteps, UserAuthStepsModel, UserAuthStepsStatus } from '@interfaces/models/userAuthSteps'
 import { ProcessCode } from '@interfaces/services'
 import { AuthMethodVerifyParams } from '@interfaces/services/auth'
+import { DocumentType, ResidentshipStatus } from '@interfaces/services/documents'
 import {
     AuthMethodsResponse,
     AuthSchemaStrategy,
@@ -90,34 +83,38 @@ export default class UserAuthStepsService {
         private readonly userAuthStepsStrategiesMortgageSigningService: MortgageSigningStrategyService,
         private readonly userAuthStepsStrategiesProlongService: ProlongStrategyService,
         private readonly userAuthStepsStrategiesResidencePermitNfcAddingService: ResidencePermitNfcAddingStrategyService,
-    ) {}
-
-    private readonly authSchemaStrategyByCode: Record<AuthSchemaCode, AuthSchemaStrategy> = {
-        [AuthSchemaCode.Authorization]: this.userAuthStepsStrategiesAuthorizationService,
-        [AuthSchemaCode.CabinetAuthorization]: this.userAuthStepsStrategiesCabinetAuthorizationService,
-        [AuthSchemaCode.DiiaIdCreation]: this.userAuthStepsStrategiesDiiaIdCreationService,
-        [AuthSchemaCode.DiiaIdSharingBarcode]: this.userAuthStepsStrategiesDiiaIdSharingBarcodeService,
-        [AuthSchemaCode.DiiaIdSharingDeeplinkDynamic]: this.userAuthStepsStrategiesDiiaIdSharingDeeplinkDynamicService,
-        [AuthSchemaCode.DiiaIdSharingDeeplinkStatic]: this.userAuthStepsStrategiesDiiaIdSharingDeeplinkStaticService,
-        [AuthSchemaCode.DiiaIdSigning]: this.userAuthStepsStrategiesDiiaIdSigningService,
-        [AuthSchemaCode.EResidentApplicantAuth]: this.userAuthStepsStrategiesEResidentApplicantAuthService,
-        [AuthSchemaCode.EResidentAuth]: this.userAuthStepsStrategiesEResidentAuthService,
-        [AuthSchemaCode.EResidentDiiaIdCreation]: this.userAuthStepsStrategiesEResidentDiiaIdCreationService,
-        [AuthSchemaCode.EResidentDiiaIdSigning]: this.userAuthStepsStrategiesEResidentDiiaIdSigningService,
-        [AuthSchemaCode.EResidentFirstAuth]: this.userAuthStepsStrategiesEResidentFirstAuthService,
-        [AuthSchemaCode.MilitaryBondsSigning]: this.userAuthStepsStrategiesMilitaryBondsSigningService,
-        [AuthSchemaCode.MortgageSigning]: this.userAuthStepsStrategiesMortgageSigningService,
-        [AuthSchemaCode.Prolong]: this.userAuthStepsStrategiesProlongService,
-        [AuthSchemaCode.ResidencePermitNfcAdding]: this.userAuthStepsStrategiesResidencePermitNfcAddingService,
+    ) {
+        this.authSchemaStrategyByCode = {
+            [AuthSchemaCode.Authorization]: this.userAuthStepsStrategiesAuthorizationService,
+            [AuthSchemaCode.CabinetAuthorization]: this.userAuthStepsStrategiesCabinetAuthorizationService,
+            [AuthSchemaCode.DiiaIdCreation]: this.userAuthStepsStrategiesDiiaIdCreationService,
+            [AuthSchemaCode.DiiaIdSharingBarcode]: this.userAuthStepsStrategiesDiiaIdSharingBarcodeService,
+            [AuthSchemaCode.DiiaIdSharingDeeplinkDynamic]: this.userAuthStepsStrategiesDiiaIdSharingDeeplinkDynamicService,
+            [AuthSchemaCode.DiiaIdSharingDeeplinkStatic]: this.userAuthStepsStrategiesDiiaIdSharingDeeplinkStaticService,
+            [AuthSchemaCode.DiiaIdSigning]: this.userAuthStepsStrategiesDiiaIdSigningService,
+            [AuthSchemaCode.EResidentApplicantAuth]: this.userAuthStepsStrategiesEResidentApplicantAuthService,
+            [AuthSchemaCode.EResidentAuth]: this.userAuthStepsStrategiesEResidentAuthService,
+            [AuthSchemaCode.EResidentDiiaIdCreation]: this.userAuthStepsStrategiesEResidentDiiaIdCreationService,
+            [AuthSchemaCode.EResidentDiiaIdSigning]: this.userAuthStepsStrategiesEResidentDiiaIdSigningService,
+            [AuthSchemaCode.EResidentFirstAuth]: this.userAuthStepsStrategiesEResidentFirstAuthService,
+            [AuthSchemaCode.MilitaryBondsSigning]: this.userAuthStepsStrategiesMilitaryBondsSigningService,
+            [AuthSchemaCode.MortgageSigning]: this.userAuthStepsStrategiesMortgageSigningService,
+            [AuthSchemaCode.Prolong]: this.userAuthStepsStrategiesProlongService,
+            [AuthSchemaCode.ResidencePermitNfcAdding]: this.userAuthStepsStrategiesResidencePermitNfcAddingService,
+        }
     }
+
+    private readonly authSchemaStrategyByCode: Record<AuthSchemaCode, AuthSchemaStrategy>
 
     private readonly authSchemaCodes = Object.values(AuthSchemaCode)
 
-    private readonly authSchemasByPublicService: Partial<Record<SchemaCode, AuthSchemaCode>> = {
-        [PublicServiceKebabCaseCode.DepositGuaranteePayments]: AuthSchemaCode.DiiaIdSigning,
-        [PublicServiceKebabCaseCode.ResidenceRegistration]: AuthSchemaCode.DiiaIdSigning,
-        [PublicServiceKebabCaseCode.VehicleReRegistration]: AuthSchemaCode.DiiaIdSigning,
-    }
+    private readonly authSchemasByPublicService: string[] = [
+        'deposit-guarantee-payments',
+        'residence-registration',
+        'vehicle-re-registration',
+        'reparations',
+        'marriage',
+    ]
 
     private readonly authMethodsProcessCodeMap: Partial<Record<AuthSchemaCode, ProcessCode>> = {
         // [AuthSchemaCode.DiiaIdCreation]: ProcessCode.DiiaIdCreationStepsV2
@@ -127,7 +124,7 @@ export default class UserAuthStepsService {
         schemaCode: SchemaCode,
         headers: AuthStepHeaders,
         processId: string | undefined,
-        user: UserTokenData | undefined,
+        user?: UserTokenData,
     ): Promise<AuthMethodsResponse> {
         const { mobileUid } = headers
         if (!processId) {
@@ -198,8 +195,8 @@ export default class UserAuthStepsService {
         const { mobileUid } = headers
         const authSteps: UserAuthStepsModel = await this.getByProcessId(processId, mobileUid, UserAuthStepsStatus.Processing)
 
-        const { code, steps = [], status } = authSteps
-        if (!steps.length) {
+        const { code, steps = [], status, conditions } = authSteps
+        if (steps.length === 0) {
             this.logger.error('Auth steps are empty', { processId })
 
             throw new AccessDeniedError()
@@ -214,7 +211,6 @@ export default class UserAuthStepsService {
 
         try {
             const strategy = this.authSchemaStrategyByCode[code]
-
             const newConditions = await strategy.verify({
                 method,
                 requestId,
@@ -224,20 +220,17 @@ export default class UserAuthStepsService {
                 authMethodParams,
             })
 
-            authSteps.conditions.push(...newConditions)
-
+            conditions.push(...newConditions)
             const newStatus = this.defineNewStatus(authSteps, authSchema)
 
-            if (newStatus) {
-                await this.setStatus(authSteps, newStatus)
-            } else {
-                await authSteps.save()
-            }
-
-            const lastStep = steps[steps.length - 1]
-
+            await (newStatus ? this.setStatus(authSteps, newStatus) : authSteps.save())
             if (newStatus === UserAuthStepsStatus.Success && strategy.completeOnSuccess) {
                 await this.completeSteps({ code, processId, mobileUid, userIdentifier: user?.identifier })
+            }
+
+            const lastStep = steps.at(-1)
+            if (!lastStep) {
+                throw new Error('Last step is not found')
             }
 
             return this.userAuthStepsProcessCodeDefinerService.getProcessCodeOnVerify(
@@ -245,12 +238,12 @@ export default class UserAuthStepsService {
                 lastStep,
                 strategy.authStepsStatusToAuthMethodProcessCode,
             )
-        } catch (e) {
-            return await utils.handleError(e, async (err) => {
-                this.logger.error(`Failed to run auth steps finish strategy. Process: ${processId}`, { err })
+        } catch (err) {
+            return await utils.handleError(err, async (apiError) => {
+                this.logger.error(`Failed to run auth steps finish strategy. Process: ${processId}`, { err: apiError })
                 await this.validateAuthSteps(user, headers, method, authSchema, authSteps, true)
 
-                const processCode = err.getData().processCode || ProcessCode.AuthFailed
+                const processCode = apiError.getData().processCode || ProcessCode.AuthFailed
 
                 throw new AccessDeniedError('Failed to verify step', {}, processCode)
             })
@@ -287,7 +280,7 @@ export default class UserAuthStepsService {
     async revokeSubmitAfterUserAuthSteps(request: RevokeSubmitAfterUserAuthStepsRequest): Promise<RevokeSubmitAfterUserAuthStepsResult> {
         const { code, mobileUid, userIdentifier } = request
         const { admitAfter = [] } = await this.authSchemaService.getByCode(code)
-        if (admitAfter.length) {
+        if (admitAfter.length > 0) {
             const query: FilterQuery<UserAuthStepsModel> = this.prepareAdmitAfterQuery(admitAfter, mobileUid, userIdentifier)
             const updateResult = await userAuthStepsModel.updateMany(query, { isRevoked: true })
 
@@ -341,14 +334,14 @@ export default class UserAuthStepsService {
 
                 throw new AccessDeniedError()
             }
-        } catch (e) {
-            return await utils.handleError(e, async (err) => {
-                this.logger.error(`Auth method validation error. Process: ${processId}`, { err })
+        } catch (err) {
+            return await utils.handleError(err, async (apiError) => {
+                this.logger.error(`Auth method validation error. Process: ${processId}`, { err: apiError })
                 if (stepsValidationParams.shouldFailPrevSteps) {
                     await this.failPrevStepsRecords(mobileUid)
                 }
 
-                const processCode = err.getData().processCode || ProcessCode.WaitingPeriodHasExpired
+                const processCode = apiError.getData().processCode || ProcessCode.WaitingPeriodHasExpired
 
                 throw new AccessDeniedError('', {}, processCode)
             })
@@ -404,11 +397,11 @@ export default class UserAuthStepsService {
     ): Promise<ProcessCode | undefined> {
         const { code, checks = [] } = authSchema
         const { steps = [] } = authSteps
-        if (!checks.length) {
+        if (checks.length === 0) {
             return
         }
 
-        if (steps.length) {
+        if (steps.length > 0) {
             return
         }
 
@@ -416,7 +409,7 @@ export default class UserAuthStepsService {
             throw new BadRequestError('User is not provided to perform checks')
         }
 
-        const { identifier: userIdentifier, birthDay } = user
+        const { identifier: userIdentifier, birthDay, sessionType } = user
         const { mobileUid } = headers
 
         const tasks: Promise<void>[] = []
@@ -457,7 +450,7 @@ export default class UserAuthStepsService {
                     break
                 }
                 case ProcessCode.EResidentTerminationInProgress: {
-                    if (user.sessionType !== SessionType.EResident) {
+                    if (sessionType !== SessionType.EResident) {
                         break
                     }
 
@@ -468,8 +461,14 @@ export default class UserAuthStepsService {
                                 if (terminationInProgress) {
                                     throw new BadRequestError('', {}, processCode)
                                 }
-                            } catch (e) {
-                                this.logger.info('Failed to get e-Resident private entrepreneur details')
+                            } catch (err) {
+                                utils.handleError(err, (apiError) => {
+                                    if (apiError.getData().processCode === processCode) {
+                                        throw new BadRequestError('', {}, processCode)
+                                    }
+
+                                    this.logger.info('Failed to get e-Resident private entrepreneur details')
+                                })
                             }
                         })(),
                     )
@@ -479,15 +478,11 @@ export default class UserAuthStepsService {
                 case ProcessCode.EResidentTerminated: {
                     tasks.push(
                         (async (): Promise<void> => {
-                            try {
-                                const { itn } = user
-                                const { residentshipStatus } = await this.documentsService.getEResidencyToProcess({ itn })
+                            const { itn } = user
+                            const { residentshipStatus } = await this.documentsService.getEResidencyToProcess({ itn })
 
-                                if (residentshipStatus === ResidentshipStatus.Terminated) {
-                                    throw new BadRequestError('', {}, processCode)
-                                }
-                            } catch (e) {
-                                this.logger.info('Failed to get e-Resident e-Residency document')
+                            if (residentshipStatus === ResidentshipStatus.Terminated) {
+                                throw new BadRequestError('', {}, processCode)
                             }
                         })(),
                     )
@@ -510,15 +505,15 @@ export default class UserAuthStepsService {
 
         try {
             await Promise.all(tasks)
-        } catch (e) {
-            return utils.handleError(e, (err) => {
-                const processCode = err.getData().processCode
+        } catch (err) {
+            return utils.handleError(err, (apiError) => {
+                const processCode = apiError.getData().processCode
 
                 if (processCode) {
                     return processCode
                 }
 
-                throw err
+                throw apiError
             })
         }
 
@@ -590,7 +585,15 @@ export default class UserAuthStepsService {
             query.code = code
         }
 
-        return await this.getUserAuthStepsAndValidateStatus(query, status)
+        try {
+            return await this.getUserAuthStepsAndValidateStatus(query, status)
+        } catch (err) {
+            if (err instanceof ModelNotFoundError) {
+                throw new ModelNotFoundError(userAuthStepsModel.modelName, processId, {}, ProcessCode.WaitingPeriodHasExpired)
+            }
+
+            throw err
+        }
     }
 
     private async setStatus(authSteps: UserAuthStepsModel, status: UserAuthStepsStatus): Promise<UserAuthStepsModel> {
@@ -605,18 +608,18 @@ export default class UserAuthStepsService {
 
     private async areAuthMethodsShouldBeSkipped(authSchema: AuthSchemaModel, authSteps: UserAuthStepsModel): Promise<boolean> {
         const { methods, admitAfter = [] } = authSchema
-        const { steps = [], userIdentifier, mobileUid } = authSteps
-        if (authSteps.isRevoked) {
+        const { steps = [], userIdentifier, mobileUid, isRevoked } = authSteps
+        if (isRevoked) {
             return false
         }
 
-        if (!methods.length) {
+        if (methods.length === 0) {
             await this.skipAuthMethods(authSteps)
 
             return true
         }
 
-        if (!admitAfter.length || steps.length || !userIdentifier) {
+        if (admitAfter.length === 0 || steps.length > 0 || !userIdentifier) {
             return false
         }
 
@@ -643,6 +646,7 @@ export default class UserAuthStepsService {
         await this.setStatus(authSteps, UserAuthStepsStatus.Success)
     }
 
+    /* eslint-disable unicorn/consistent-destructuring */
     private async validateAuthStep(step: UserAuthStep, validationParams: UserAuthStepsValidationParams): Promise<void> {
         const { startDate, method, attempts, verifyAttempts, endDate } = step
         const { headers, methodToValidate, processId, authSchemaMethod, user, strategy } = validationParams
@@ -702,27 +706,28 @@ export default class UserAuthStepsService {
             throw new AccessDeniedError('', {}, ProcessCode.WaitingPeriodHasExpired)
         }
     }
+    /* eslint-enable unicorn/consistent-destructuring */
 
     private defineNewStatus(authSteps: UserAuthStepsModel, authSchema: AuthSchemaModel): UserAuthStepsStatus | undefined {
         let newStatus: UserAuthStepsStatus | undefined
         let authSchemaMethod: AuthSchemaMethod | AuthSchemaModel | undefined = <AuthSchemaMethod | AuthSchemaModel>authSchema.toObject()
-        const { steps = [] } = authSteps
+        const { steps = [], conditions } = authSteps
 
-        steps.forEach((step: UserAuthStep) => {
+        for (const step of steps) {
             const { endDate, method: stepMethod } = step
 
             authSchemaMethod = authSchemaMethod?.[stepMethod]
             if (endDate) {
-                return
+                continue
             }
 
             step.endDate = new Date()
             if (!authSchemaMethod?.methods?.length) {
                 newStatus = UserAuthStepsStatus.Success
 
-                return
+                continue
             }
-        })
+        }
 
         if (authSchemaMethod && !newStatus) {
             let isFinished = true
@@ -741,7 +746,7 @@ export default class UserAuthStepsService {
                     break
                 }
 
-                if (authSteps.conditions.includes(condition)) {
+                if (conditions.includes(condition)) {
                     isFinished = false
 
                     break
@@ -761,7 +766,7 @@ export default class UserAuthStepsService {
         mobileUid: string,
         userIdentifier: string,
     ): FilterQuery<UserAuthStepsModel> {
-        const ttl: number = this.config.auth.schema.admissionStepsTtl
+        const ttl: number = this.config.authService.schema.admissionStepsTtl
         const thresholdDate: Date = new Date(Date.now() - ttl)
         const admitAfterFilter = admitAfter.map(({ code, admitAfterStatus }) => {
             return {
@@ -782,7 +787,7 @@ export default class UserAuthStepsService {
     }
 
     private getAuthSchemaCode(schemaCode: SchemaCode): AuthSchemaCode {
-        const code = <AuthSchemaCode>(this.authSchemasByPublicService[schemaCode] || schemaCode)
+        const code = <AuthSchemaCode>(this.authSchemasByPublicService.includes(schemaCode) ? AuthSchemaCode.DiiaIdSigning : schemaCode)
         if (!this.authSchemaCodes.includes(code)) {
             throw new BadRequestError(`Unsupported schema code: ${code}`)
         }

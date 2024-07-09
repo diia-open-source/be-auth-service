@@ -1,49 +1,46 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck
 import 'module-alias/register'
-import { Db } from 'mongodb'
-
+import { mongo } from '@diia-inhouse/db'
 import { PlatformType } from '@diia-inhouse/types'
 
-import { AuthMethod, AuthSchema, AuthSchemaCode, FldConfig, FldConfigVersion } from '@interfaces/models/authSchema'
+import { AuthMethod, AuthSchemaCode, FldConfig, FldConfigVersion } from '@interfaces/models/authSchema'
 
 const collectionName = 'authschemas'
 
-export async function up(db: Db): Promise<void> {
+export async function up(db: mongo.Db): Promise<void> {
     const androidConfig: FldConfig[] = [
         {
             version: FldConfigVersion['v1.1'],
             values: {
-                solutionsSize: 5,
-                deviationThreshold: 0.05,
-                confidenceThreshold: 0.85,
-                failureCooldown: 500,
-                sensorRotationYLow: 70,
-                sensorRotationYUp: 110,
-                sensorAccelerometerYLow: 8,
+                solutionsSize: 1,
+                deviationThreshold: 1.11,
+                confidenceThreshold: 1.11,
+                failureCooldown: 111,
+                sensorRotationYLow: 11,
+                sensorRotationYUp: 111,
+                sensorAccelerometerYLow: 1,
                 sensorAccelerometerYUp: 11,
-                sensorAccelerometerXLow: 0,
-                sensorAccelerometerXUp: 2,
-                headEulerAngleXLow: -15,
-                headEulerAngleXUp: 15,
-                headEulerAngleYLow: -10,
-                headEulerAngleYUp: 10,
-                headEulerAngleZLow: -12,
-                headEulerAngleZUp: 12,
-                faceBoundingEdgeMin: 12,
-                faceBoundingEdgeMax: 88,
-                faceMinSize: 70,
-                faceBoundingBoxThreshold: 57,
-                faceDarkPixelUp: 25,
-                faceLightPixelLow: 220,
-                brightThreshold: 0.6,
-                darkThreshold: 0.6,
-                eyeClosedUpperProbability: 0.6,
-                smileLowerProbability: 0.1,
-                solutionTtl: 10000,
+                sensorAccelerometerXLow: 1,
+                sensorAccelerometerXUp: 1,
+                headEulerAngleXLow: -11,
+                headEulerAngleXUp: 11,
+                headEulerAngleYLow: -11,
+                headEulerAngleYUp: 11,
+                headEulerAngleZLow: -11,
+                headEulerAngleZUp: 11,
+                faceBoundingEdgeMin: 11,
+                faceBoundingEdgeMax: 11,
+                faceMinSize: 11,
+                faceBoundingBoxThreshold: 11,
+                faceDarkPixelUp: 11,
+                faceLightPixelLow: 111,
+                brightThreshold: 1.1,
+                darkThreshold: 1.1,
+                eyeClosedUpperProbability: 1.1,
+                smileLowerProbability: 1.1,
+                solutionTtl: 111111,
                 allowedCameraResolutions: '480x640;600x800;624x832;720x960',
-                frameProcessingExecutors: 3,
-                frameProcessingPoolSize: 4,
+                frameProcessingExecutors: 1,
+                frameProcessingPoolSize: 1,
                 messages: {
                     face_recognition_message_blink: 'authUrl.v3.face-recognition.Android.face_recognition_message_blink',
                     face_recognition_message_smile: 'authUrl.v3.face-recognition.Android.face_recognition_message_smile',
@@ -75,25 +72,25 @@ export async function up(db: Db): Promise<void> {
         {
             version: FldConfigVersion['v1.0'],
             values: {
-                minEyesToNoseCheck: 1.5,
-                maxEyesToNoseCheck: 5.5,
-                minLipsToNoseCheck: 0.5,
-                maxLipsToNoseCheck: 4,
-                minBrownToEyesCheck: 0.3,
-                maxBrownToEyesCheck: 4,
-                minBrightness: -3,
-                maxBrightness: 7,
-                yawThreshold: 0.1,
-                minRollThreshold: 1.5,
-                maxRollThreshold: 1.6,
-                faceBoundsMinX: 0.1,
-                faceBoundsMaxX: 0.9,
-                faceBoundsMinMaxY: 0.69,
-                faceBoundsMaxMaxY: 0.9,
-                faceBoundsMinMinY: 0.1,
-                faceBoundsMaxMinY: 0.31,
-                faceBoundsHeight: 0.47,
-                blurVarienceThreshold: 2,
+                minEyesToNoseCheck: 1.1,
+                maxEyesToNoseCheck: 1.1,
+                minLipsToNoseCheck: 1.1,
+                maxLipsToNoseCheck: 1,
+                minBrownToEyesCheck: 1.1,
+                maxBrownToEyesCheck: 1,
+                minBrightness: -1,
+                maxBrightness: 1,
+                yawThreshold: 1.1,
+                minRollThreshold: 1.1,
+                maxRollThreshold: 1.1,
+                faceBoundsMinX: 1.1,
+                faceBoundsMaxX: 1.1,
+                faceBoundsMinMaxY: 1.11,
+                faceBoundsMaxMaxY: 1.1,
+                faceBoundsMinMinY: 1.1,
+                faceBoundsMaxMinY: 1.11,
+                faceBoundsHeight: 1.11,
+                blurVarienceThreshold: 1,
                 messages: {
                     face_recognition_no_face_in_frame: 'authUrl.v3.face-recognition.iOS.face_recognition_no_face_in_frame',
                     face_recognition_multiple_persons: 'authUrl.v3.face-recognition.iOS.face_recognition_multiple_persons',
@@ -114,21 +111,32 @@ export async function up(db: Db): Promise<void> {
         [PlatformType.Browser]: null,
     }
 
-    const authSchema: AuthSchema = {
-        code: AuthSchemaCode.EResidentAuth,
-        title: 'Please scan the MRZ of your passport',
-        methods: [AuthMethod.EResidentMrz],
-        [AuthMethod.EResidentMrz]: {
-            maxAttempts: 3,
-            ttl: 180000,
-            methods: [AuthMethod.PhotoId],
-            [AuthMethod.PhotoId]: {
+    const authSchemas = [
+        {
+            code: AuthSchemaCode.EResidentAuth,
+            title: 'Please scan the MRZ of your passport',
+            methods: [AuthMethod.EResidentMrz],
+            [AuthMethod.EResidentMrz]: {
                 maxAttempts: 3,
+                ttl: 180000,
+                methods: [AuthMethod.PhotoId],
+                [AuthMethod.PhotoId]: {
+                    maxAttempts: 3,
+                    ttl: 180000,
+                },
+            },
+            faceLivenessDetectionConfig,
+        },
+        {
+            code: AuthSchemaCode.EResidentApplicantAuth,
+            methods: [AuthMethod.EmailOtp],
+            [AuthMethod.EmailOtp]: {
+                maxAttempts: 3,
+                maxVerifyAttempts: 3,
                 ttl: 180000,
             },
         },
-        faceLivenessDetectionConfig,
-    }
+    ]
 
-    await db.collection(collectionName).insertOne(authSchema)
+    await db.collection(collectionName).insertMany(authSchemas)
 }

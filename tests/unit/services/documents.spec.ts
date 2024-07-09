@@ -1,11 +1,11 @@
 import { MoleculerService } from '@diia-inhouse/diia-app'
 
 import { mockInstance } from '@diia-inhouse/test'
-import { ActionVersion, DocumentType, EResidency, SessionType, UserTokenData } from '@diia-inhouse/types'
+import { ActionVersion, SessionType, UserTokenData } from '@diia-inhouse/types'
 
 import DocumentsService from '@services/documents'
 
-import { EResidencyCountryInfo } from '@interfaces/services/documents'
+import { DocumentType, EResidency, EResidencyCountryInfo } from '@interfaces/services/documents'
 
 describe(`${DocumentsService.name}`, () => {
     let mockMoleculerService: MoleculerService
@@ -111,7 +111,7 @@ describe(`${DocumentsService.name}`, () => {
         it('should return empty array when country info is undefined', async () => {
             const emptyArray: EResidencyCountryInfo[] = []
 
-            jest.spyOn(mockMoleculerService, 'act').mockResolvedValueOnce(undefined)
+            jest.spyOn(mockMoleculerService, 'act').mockResolvedValueOnce(null)
 
             await expect(documentsService.getEResidentCountriesInfo()).resolves.toMatchObject(emptyArray)
         })

@@ -1,7 +1,7 @@
-import { FilterQuery, QueryOptions, UpdateQuery } from 'mongoose'
 import { v4 as uuid } from 'uuid'
 
-import { ExternalEvent, ExternalEventBus } from '@diia-inhouse/diia-queue'
+import { FilterQuery, QueryOptions, UpdateQuery } from '@diia-inhouse/db'
+import { ExternalEventBus } from '@diia-inhouse/diia-queue'
 import { AccessDeniedError, BadRequestError, ModelNotFoundError, NotFoundError } from '@diia-inhouse/errors'
 import { Logger } from '@diia-inhouse/types'
 
@@ -9,6 +9,7 @@ import UserService from '@services/user'
 
 import photoIdAuthRequestModel from '@models/photoIdAuthRequest'
 
+import { ExternalEvent } from '@interfaces/application'
 import { AppConfig } from '@interfaces/config'
 import {
     FaceRecoAuthPhotoVerificationRequest,
@@ -24,13 +25,15 @@ export default class PhotoIdAuthRequestService {
         private readonly logger: Logger,
 
         private readonly userService: UserService,
-    ) {}
+    ) {
+        this.expirationTime = this.config.photoId.authRequestExpirationMs
+    }
 
-    private readonly expirationTime = this.config.photoId.authRequestExpirationMs
+    private readonly expirationTime
 
     async createRequest(userIdentifier: string, mobileUid: string): Promise<PhotoIdAuthRequestModel> {
         const { points } = await this.userService.getFeaturePoints(userIdentifier)
-        if (!points.length) {
+        if (points.length === 0) {
             throw new NotFoundError('Could not find user feature points')
         }
 

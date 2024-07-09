@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 
 const uuidV4Stub = jest.fn()
 
@@ -32,7 +32,7 @@ describe('QesProvider', () => {
             const { mobileUid: deviceUuid } = headers
             const nonceCacheTtl = 180000
             const config = <AppConfig>(<unknown>{
-                auth: {
+                authService: {
                     schema: {
                         schemaMap: {
                             [AuthSchemaCode.CabinetAuthorization]: {
@@ -56,7 +56,7 @@ describe('QesProvider', () => {
 
         it('should fail with error in case nonceCacheTtl is not defined', async () => {
             const config = <AppConfig>(<unknown>{
-                auth: {
+                authService: {
                     schema: {
                         schemaMap: {
                             [AuthSchemaCode.CabinetAuthorization]: {},
@@ -82,7 +82,7 @@ describe('QesProvider', () => {
         const signature = 'qes-signature'
         const headers = testKit.session.getHeaders()
         const config = <AppConfig>(<unknown>{
-            auth: {
+            authService: {
                 schema: {
                     schemaMap: {
                         [AuthSchemaCode.CabinetAuthorization]: {},

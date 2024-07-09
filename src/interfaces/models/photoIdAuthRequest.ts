@@ -1,4 +1,4 @@
-import { Document } from 'mongoose'
+import { Document } from '@diia-inhouse/db'
 
 import { FaceRecoMatchedPhoto } from '@interfaces/externalEventListeners/faceRecoAuthPhotoVerification'
 

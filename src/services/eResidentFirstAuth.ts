@@ -1,9 +1,10 @@
-import { ExternalCommunicator, ExternalEvent } from '@diia-inhouse/diia-queue'
+import { ExternalCommunicator } from '@diia-inhouse/diia-queue'
 import { ExternalCommunicatorError, NotFoundError } from '@diia-inhouse/errors'
 import { CacheService } from '@diia-inhouse/redis'
 import { HttpStatusCode, Logger } from '@diia-inhouse/types'
 import { utils } from '@diia-inhouse/utils'
 
+import { ExternalEvent } from '@interfaces/application'
 import { AppConfig } from '@interfaces/config'
 import { AuthSchemaCode } from '@interfaces/models/authSchema'
 import { ProcessCode } from '@interfaces/services'
@@ -38,17 +39,17 @@ export default class EResidentFirstAuthService {
 
             await this.external.receive(ExternalEvent.EResidentAuthConfirmation, { itn, qrCodeToken })
             this.logger.info('Successfully confirmed e-resident first auth')
-        } catch (e) {
-            utils.handleError(e, (err) => {
-                this.logger.fatal('Failed to confirm first auth', { err })
+        } catch (err) {
+            utils.handleError(err, (apiError) => {
+                this.logger.fatal('Failed to confirm first auth', { err: apiError })
 
-                const errorCode = err.getCode()
+                const errorCode = apiError.getCode()
 
                 if (errorCode === HttpStatusCode.NOT_FOUND) {
                     throw new NotFoundError('Failed to confirm first auth', ProcessCode.EResidentQrCodeFail)
                 }
 
-                throw new ExternalCommunicatorError('Failed to confirm first auth', errorCode, { err })
+                throw new ExternalCommunicatorError('Failed to confirm first auth', errorCode, { err: apiError })
             })
         }
     }
@@ -64,10 +65,10 @@ export default class EResidentFirstAuthService {
     }
 
     private getAuthorizationCacheTtlSec(code: AuthSchemaCode): number {
-        const authSchema = this.config.auth.schema.schemaMap[code]
+        const authSchema = this.config.authService.schema.schemaMap[code]
 
         if (!authSchema) {
-            return Math.floor(this.config.auth.schema.schemaMap[AuthSchemaCode.EResidentFirstAuth].tokenParamsCacheTtl / 1000)
+            return Math.floor(this.config.authService.schema.schemaMap[AuthSchemaCode.EResidentFirstAuth].tokenParamsCacheTtl / 1000)
         }
 
         return authSchema.tokenParamsCacheTtl / 1000

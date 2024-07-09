@@ -1,9 +1,8 @@
-import { ObjectId } from 'bson'
-
 import { MoleculerService } from '@diia-inhouse/diia-app'
 
+import { mongo } from '@diia-inhouse/db'
 import { mockInstance } from '@diia-inhouse/test'
-import { ActionVersion, PartnerScopes } from '@diia-inhouse/types'
+import { ActionVersion } from '@diia-inhouse/types'
 
 import PartnerService from '@services/partner'
 
@@ -15,7 +14,7 @@ describe(`${PartnerService.name}`, () => {
     describe('method: `getPartnerByToken`', () => {
         it('should return partner result info', async () => {
             const partnerToken = 'token'
-            const result = { _id: new ObjectId(), scopes: <PartnerScopes>{} }
+            const result = { _id: new mongo.ObjectId(), scopes: {} }
 
             jest.spyOn(mockMoleculerService, 'act').mockResolvedValueOnce(result)
 

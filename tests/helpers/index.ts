@@ -1,7 +1,11 @@
+// eslint-disable-next-line unicorn/no-static-only-class
 class Utils {
     static extractAuthUrlRequestId(authUrl: string): string {
-        const splittedAuthUrl: string[] = authUrl.split('/')
-        const requestId: string = splittedAuthUrl[splittedAuthUrl.length - 1]
+        const splittedAuthUrl = authUrl.split('/')
+        const requestId = splittedAuthUrl.at(-1)
+        if (!requestId) {
+            throw new Error('Could not extract requestId from authUrl')
+        }
 
         return requestId
     }

@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 import { AccessDeniedError, BadRequestError, NotFoundError } from '@diia-inhouse/errors'
 import { CacheService } from '@diia-inhouse/redis'
-import { EResidency, Logger } from '@diia-inhouse/types'
+import { Logger } from '@diia-inhouse/types'
 
 import DocumentsService from '@services/documents'
 
@@ -10,7 +10,7 @@ import { AuthMethod } from '@interfaces/models/authSchema'
 import { ProcessCode } from '@interfaces/services'
 import { AuthMethodVerifyParams, AuthProviderHeaders, AuthUrlOps } from '@interfaces/services/auth'
 import { AuthProviderFactory } from '@interfaces/services/authMethods'
-import { EResidencyCountryInfo } from '@interfaces/services/documents'
+import { EResidency, EResidencyCountryInfo } from '@interfaces/services/documents'
 
 export default class EResidentMrzProvider implements AuthProviderFactory {
     constructor(

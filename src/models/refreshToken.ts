@@ -1,5 +1,4 @@
-import { Model, Schema, model, models } from 'mongoose'
-
+import { Model, Schema, model, models } from '@diia-inhouse/db'
 import { AuthDocumentType, AuthEntryPoint, PlatformType, SessionType } from '@diia-inhouse/types'
 
 import { AuthEntryPointHistory, RefreshToken } from '@interfaces/models/refreshToken'

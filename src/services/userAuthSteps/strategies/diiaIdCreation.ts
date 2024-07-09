@@ -11,17 +11,19 @@ import { ProcessCode } from '@interfaces/services'
 import { AuthSchemaStrategy, AuthStepsStatusToAuthMethodProcessCode, AuthStrategyVerifyOptions } from '@interfaces/services/userAuthSteps'
 
 export default class DiiaIdCreationStrategyService implements AuthSchemaStrategy {
+    readonly isUserRequired: boolean = true
+
+    private readonly comparingItnIsEnabled: boolean
+
     constructor(
         private readonly config: AppConfig,
         private readonly logger: Logger,
         private readonly envService: EnvService,
 
         private readonly userAuthTokenService: UserAuthTokenService,
-    ) {}
-
-    readonly isUserRequired: boolean = true
-
-    private readonly comparingItnIsEnabled: boolean = this.config.auth.schema.comparingItnIsEnabled
+    ) {
+        this.comparingItnIsEnabled = this.config.authService.schema.comparingItnIsEnabled
+    }
 
     readonly authStepsStatusToAuthMethodProcessCode: AuthStepsStatusToAuthMethodProcessCode = {
         [UserAuthStepsStatus.Success]: {

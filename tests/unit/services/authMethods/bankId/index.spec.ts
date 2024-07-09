@@ -1,4 +1,5 @@
-import { randomUUID } from 'crypto'
+/* eslint-disable unicorn/no-useless-undefined */
+import { randomUUID } from 'node:crypto'
 
 const uuidV4Stub = jest.fn()
 
@@ -388,7 +389,7 @@ describe('BankIdProvider', () => {
                 new UnauthorizedError(),
                 (): void => {
                     jest.spyOn(fakeBankLoginServiceMock, 'getFakeDataToApply').mockResolvedValueOnce(undefined)
-                    jest.spyOn(httpServiceMock, 'post').mockResolvedValueOnce([new Error(), undefined])
+                    jest.spyOn(httpServiceMock, 'post').mockResolvedValueOnce([new Error('Test error'), undefined])
                 },
             ],
             [

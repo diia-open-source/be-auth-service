@@ -1,5 +1,5 @@
 import { UnauthorizedError } from '@diia-inhouse/errors'
-import TestKit from '@diia-inhouse/test/*'
+import TestKit from '@diia-inhouse/test'
 
 import TestGetToken from '@actions/v1/testGetToken'
 import RefreshTokenAction from '@actions/v2/refreshToken'
@@ -20,8 +20,6 @@ describe(`Action ${RefreshTokenAction.name}`, () => {
         refreshTokenAction = app.container.build(RefreshTokenAction)
         testGetToken = app.container.build(TestGetToken)
         testKit = app.container.resolve('testKit')
-
-        await app.start()
     })
 
     afterAll(async () => {

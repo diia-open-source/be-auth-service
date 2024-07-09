@@ -1,5 +1,5 @@
 import DiiaLogger from '@diia-inhouse/diia-logger'
-import { ExternalCommunicator, ExternalEvent } from '@diia-inhouse/diia-queue'
+import { ExternalCommunicator } from '@diia-inhouse/diia-queue'
 import { BadRequestError, ExternalCommunicatorError, NotFoundError } from '@diia-inhouse/errors'
 import { CacheService } from '@diia-inhouse/redis'
 import TestKit, { mockInstance } from '@diia-inhouse/test'
@@ -7,6 +7,7 @@ import { HttpStatusCode } from '@diia-inhouse/types'
 
 import EResidentFirstAuthService from '@services/eResidentFirstAuth'
 
+import { ExternalEvent } from '@interfaces/application'
 import { AppConfig } from '@interfaces/config'
 import { AuthSchemaCode } from '@interfaces/models/authSchema'
 import { ProcessCode } from '@interfaces/services'
@@ -14,7 +15,7 @@ import { ProcessCode } from '@interfaces/services'
 describe(`${EResidentFirstAuthService.name}`, () => {
     const testKit = new TestKit()
     const config = <AppConfig>(<unknown>{
-        auth: {
+        authService: {
             isEnabled: false,
             schema: { schemaMap: { [AuthSchemaCode.EResidentFirstAuth]: { tokenParamsCacheTtl: 10000 } } },
         },

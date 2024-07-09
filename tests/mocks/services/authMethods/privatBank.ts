@@ -12,9 +12,11 @@ import { GenderAsSex } from '@interfaces/services/authMethods'
 import { PrivatBankUserDTO } from '@interfaces/services/authMethods/privatBank'
 
 export default class PrivatBankMock implements AuthMockProvider {
-    constructor(private readonly authMethodsPrivatBankService: PrivatBankAuthMethodService) {}
+    constructor(private readonly authMethodsPrivatBankService: PrivatBankAuthMethodService) {
+        this.host = `https://${this.authMethodsPrivatBankService.serviceConfig.baseUrl}`
+    }
 
-    private readonly host: string = `https://${this.authMethodsPrivatBankService.serviceConfig.baseUrl}`
+    private readonly host
 
     async requestAuthorizationUrl(): Promise<void> {
         nock(this.host).post(/.*/).reply(HttpStatusCode.OK, { sid: 'privatbank-sid' })

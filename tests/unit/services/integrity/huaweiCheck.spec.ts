@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 
 const huaweiIntegrityCheckModelMock = {
     create: jest.fn(),
@@ -12,7 +12,7 @@ jest.mock('@models/integrity/huaweiIntegrityCheck', () => huaweiIntegrityCheckMo
 import { AnalyticsActionResult, AnalyticsActionType, AnalyticsService } from '@diia-inhouse/analytics'
 import { MongoDBErrorCode } from '@diia-inhouse/db'
 import DiiaLogger from '@diia-inhouse/diia-logger'
-import { ExternalEvent, ExternalEventBus } from '@diia-inhouse/diia-queue'
+import { ExternalEventBus } from '@diia-inhouse/diia-queue'
 import { AccessDeniedError, ModelNotFoundError } from '@diia-inhouse/errors'
 import TestKit, { mockInstance } from '@diia-inhouse/test'
 import { HttpStatusCode } from '@diia-inhouse/types'
@@ -22,6 +22,7 @@ import HuaweiIntegrityCheckService from '@services/integrity/huaweiCheck'
 
 import { MongoDbApiError } from '@tests/unit/stubs'
 
+import { ExternalEvent } from '@interfaces/application'
 import { GoogleIntegrityCheckStatus } from '@interfaces/models/integrity/googleIntegrityCheck'
 
 describe(`${HuaweiIntegrityCheckService.constructor.name}`, () => {
@@ -110,7 +111,7 @@ describe(`${HuaweiIntegrityCheckService.constructor.name}`, () => {
             } = session
             const signedAttestationStatement = randomUUID()
 
-            huaweiIntegrityCheckModelMock.findOne.mockResolvedValueOnce(undefined)
+            huaweiIntegrityCheckModelMock.findOne.mockResolvedValueOnce(null)
 
             await expect(service.launchIntegrityChallenge(userIdentifier, mobileUid, signedAttestationStatement)).rejects.toThrow(
                 new AccessDeniedError('Could not find integrity check entity'),
@@ -198,7 +199,7 @@ describe(`${HuaweiIntegrityCheckService.constructor.name}`, () => {
                 nonce,
             }
 
-            huaweiIntegrityCheckModelMock.findOne.mockResolvedValueOnce(undefined)
+            huaweiIntegrityCheckModelMock.findOne.mockResolvedValueOnce(null)
 
             await expect(service.onHuaweiIntegrityCheckComplete(userIdentifier, headers, integrityResultData)).rejects.toThrow(
                 new ModelNotFoundError(huaweiIntegrityCheckModelMock.modelName, nonce),

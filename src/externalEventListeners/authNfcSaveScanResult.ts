@@ -1,10 +1,11 @@
-import { EventBusListener, ExternalEvent } from '@diia-inhouse/diia-queue'
+import { EventBusListener } from '@diia-inhouse/diia-queue'
 import { BadRequestError } from '@diia-inhouse/errors'
 import { AuthDocumentType } from '@diia-inhouse/types'
 import { ValidationSchema } from '@diia-inhouse/validators'
 
 import NfcService from '@services/nfc'
 
+import { ExternalEvent } from '@interfaces/application'
 import { EventPayload } from '@interfaces/externalEventListeners/saveNfcScanResult'
 import { GenderAsSex } from '@interfaces/services/authMethods'
 

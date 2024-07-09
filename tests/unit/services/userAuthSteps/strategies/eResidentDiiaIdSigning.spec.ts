@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 
 import { EnvService } from '@diia-inhouse/env'
 import TestKit, { mockInstance } from '@diia-inhouse/test'
@@ -59,7 +59,7 @@ describe('EResidentDiiaIdSigningStrategyService', () => {
                 requestId,
                 user,
             }
-            const expectedError = new Error()
+            const expectedError = new Error('Test error')
 
             jest.spyOn(envService, 'isProd').mockReturnValueOnce(true)
             jest.spyOn(authService, 'verify').mockRejectedValue(expectedError)

@@ -1,5 +1,4 @@
-import { Model, Schema, model, models } from 'mongoose'
-
+import { Model, Schema, model, models } from '@diia-inhouse/db'
 import { PlatformType } from '@diia-inhouse/types'
 
 import {
@@ -69,10 +68,7 @@ const authSchemaSchema = new Schema<AuthSchema>(
         checks: { type: [Number], enum: Object.values(ProcessCode) },
         admitAfter: { type: [admissionSchema] },
         faceLivenessDetectionConfig: { type: faceLivenessDetectionConfigByPlatformSchema },
-        ...Object.values(AuthMethod).reduce(
-            (acc, authMethod: AuthMethod) => ({ ...acc, [authMethod]: { type: authSchemaMethodSchema } }),
-            {},
-        ),
+        ...Object.fromEntries(Object.values(AuthMethod).map((authMethod: AuthMethod) => [authMethod, { type: authSchemaMethodSchema }])),
     },
     { timestamps: true },
 )

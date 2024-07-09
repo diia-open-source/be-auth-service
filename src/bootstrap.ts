@@ -10,9 +10,9 @@ export async function bootstrap(serviceName: string): Promise<void> {
     const app = new Application<ServiceContext<AppConfig, AppDeps>>(serviceName)
 
     await app.setConfig(configFactory)
-    app.setDeps(deps)
+    await app.setDeps(deps)
 
-    const { start } = app.initialize()
+    const { start } = await app.initialize()
 
     await start()
 }

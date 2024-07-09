@@ -1,14 +1,14 @@
-import { ObjectId } from 'bson'
-
 import { MoleculerService } from '@diia-inhouse/diia-app'
 
+import { mongo } from '@diia-inhouse/db'
 import DiiaLogger from '@diia-inhouse/diia-logger'
-import { EventBus, InternalEvent } from '@diia-inhouse/diia-queue'
+import { EventBus } from '@diia-inhouse/diia-queue'
 import { mockInstance } from '@diia-inhouse/test'
 import { ActionVersion } from '@diia-inhouse/types'
 
 import NotificationService from '@services/notification'
 
+import { InternalEvent } from '@interfaces/application'
 import { MessageTemplateCode } from '@interfaces/services/notification'
 
 describe(`${NotificationService.name}`, () => {
@@ -28,48 +28,13 @@ describe(`${NotificationService.name}`, () => {
             const mobileUid = 'mobileUid'
             const userIdentifier = 'userIdentifier'
 
-            jest.spyOn(mockEventBusService, 'publish').mockResolvedValueOnce(true)
+            const eventBusPublishSpy = jest.spyOn(mockEventBusService, 'publish').mockResolvedValueOnce(true)
 
             expect(await notificationService.assignUserToPushToken(mobileUid, userIdentifier)).toBeUndefined()
-            expect(mockEventBusService.publish).toHaveBeenCalledWith(InternalEvent.AuthAssignUserToPushToken, { mobileUid, userIdentifier })
-            expect(mockEventBusService.publish).toHaveBeenCalledTimes(1)
-        })
-    })
+            expect(eventBusPublishSpy).toHaveBeenCalledWith(InternalEvent.AuthAssignUserToPushToken, { mobileUid, userIdentifier })
+            expect(eventBusPublishSpy).toHaveBeenCalledTimes(1)
 
-    describe('method: `unassignUsersFromPushTokens`', () => {
-        it('should successfully execute method', async () => {
-            const mobileUids = ['value1', 'value2']
-
-            jest.spyOn(mockMoleculerService, 'act').mockResolvedValueOnce(null)
-
-            expect(await notificationService.unassignUsersFromPushTokens(mobileUids)).toBeNull()
-            expect(mockMoleculerService.act).toHaveBeenCalledWith(
-                'Notification',
-                { name: 'unassignUsersFromPushTokens', actionVersion: ActionVersion.V1 },
-                { params: { mobileUids } },
-            )
-            expect(mockMoleculerService.act).toHaveBeenCalledTimes(1)
-        })
-    })
-
-    describe('method: `createNotificationWithPushes`', () => {
-        it('should successfully execute method', async () => {
-            const userIdentifier = 'userIdentifier'
-            const templateCode = MessageTemplateCode.NewDeviceConnecting
-            const resourceId = 'resourceId'
-            const excludedMobileUids = ['value1', 'value2']
-
-            jest.spyOn(mockMoleculerService, 'act').mockResolvedValueOnce(null)
-
-            expect(
-                await notificationService.createNotificationWithPushes(userIdentifier, templateCode, resourceId, excludedMobileUids),
-            ).toBeNull()
-            expect(mockMoleculerService.act).toHaveBeenCalledWith(
-                'Notification',
-                { name: 'createNotificationWithPushes', actionVersion: ActionVersion.V1 },
-                { params: { userIdentifier, templateCode, resourceId, excludedMobileUids } },
-            )
-            expect(mockMoleculerService.act).toHaveBeenCalledTimes(1)
+            eventBusPublishSpy.mockRestore()
         })
     })
 
@@ -82,7 +47,7 @@ describe(`${NotificationService.name}`, () => {
             }
 
             const result = {
-                _id: new ObjectId(),
+                _id: new mongo.ObjectId(),
                 hashId: 'hashId',
                 userIdentifier: 'userIdentifier',
                 isRead: true,
@@ -110,7 +75,7 @@ describe(`${NotificationService.name}`, () => {
             }
 
             const result = {
-                _id: new ObjectId(),
+                _id: new mongo.ObjectId(),
                 hashId: 'hashId',
                 userIdentifier: 'userIdentifier',
                 isRead: true,

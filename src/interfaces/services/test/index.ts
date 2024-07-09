@@ -12,3 +12,7 @@ export interface ProvidedUserData {
     addressOfRegistration?: string
     email?: string
 }
+
+export interface GetUserTokenOps {
+    skipLogoutEvent?: boolean
+}

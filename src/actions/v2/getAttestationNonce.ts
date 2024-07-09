@@ -31,14 +31,17 @@ export default class GetAttestationNonceAction implements AppAction {
         const { platformType } = headers
         let nonce: string
         switch (platformType) {
-            case PlatformType.Android:
+            case PlatformType.Android: {
                 nonce = await this.integrityGoogleCheckService.createIntegrityChallenge(userIdentifier, headers)
                 break
-            case PlatformType.Huawei:
+            }
+            case PlatformType.Huawei: {
                 nonce = await this.integrityHuaweiCheckService.createIntegrityChallenge(userIdentifier, headers)
                 break
-            default:
+            }
+            default: {
                 throw new BadRequestError(`This operation is not supported for platform ${platformType}`)
+            }
         }
 
         return { nonce }

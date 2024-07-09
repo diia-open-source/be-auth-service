@@ -1,4 +1,4 @@
-import { RemoveTokensByUserIdentifierRequest } from '@generated/auth'
+import { RemoveTokensByUserIdentifierRequest } from '@generated/auth-service'
 
 import { ServiceActionArguments } from '@diia-inhouse/types'
 

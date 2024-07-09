@@ -48,7 +48,9 @@ describe(`Action ${TestGetTokenAction.name}`, () => {
 
             const { requestId, ...paramsWithoutRequestId } = args.params
 
-            expect(testAuthTokenServiceMock.getUserToken).toHaveBeenCalledWith(args.params.requestId, args.headers, paramsWithoutRequestId)
+            expect(testAuthTokenServiceMock.getUserToken).toHaveBeenCalledWith(requestId, args.headers, paramsWithoutRequestId, {
+                skipLogoutEvent: undefined,
+            })
             expect(identifierService.createIdentifier).toHaveBeenCalledWith(mockTokenResult.identifier)
         })
     })

@@ -1,4 +1,4 @@
-import { ParsedUrlQueryInput } from 'querystring'
+import { ParsedUrlQueryInput } from 'node:querystring'
 
 import { v4 as uuid } from 'uuid'
 
@@ -73,13 +73,15 @@ export default class BankIdProvider implements AuthProviderFactory {
         const clientId = bankIdConfig.clientId
         const state = uuid()
 
-        const { bankIdVersion, datasetInUse } = this.config.bankId
+        const { bankIdVersion, datasetInUse } = bankIdConfig
         const baseUrl = `https://${host}${path}?response_type=code&client_id=${clientId}&state=${state}&bank_id=${bankId}`
         switch (bankIdVersion) {
-            case BankIdVersion.V1:
+            case BankIdVersion.V1: {
                 return baseUrl
-            case BankIdVersion.V2:
+            }
+            case BankIdVersion.V2: {
                 return `${baseUrl}&dataset=${datasetInUse}`
+            }
             default: {
                 const unhandledBankIdVersion: never = bankIdVersion
 
@@ -120,7 +122,7 @@ export default class BankIdProvider implements AuthProviderFactory {
 
         const [error, result]: HttpServiceResponse = await this.makeUserApiCall(token)
         if (error || !result.data) {
-            const err: { error: string } = error?.data ? error.data : error?.toString()
+            const err: { error: string } = error?.data || error?.toString()
 
             this.logger.error('Error: Getting user', err)
 
@@ -154,9 +156,9 @@ export default class BankIdProvider implements AuthProviderFactory {
             const { data } = await this.bankIdCryptoServiceClient.decrypt(encryptedUser)
 
             return JSON.parse(data)
-        } catch (e) {
-            return utils.handleError(e, (err) => {
-                this.logger.error('Error when decrypting response from BankId', { err })
+        } catch (err) {
+            return utils.handleError(err, (apiError) => {
+                this.logger.error('Error when decrypting response from BankId', { err: apiError })
 
                 throw new UnauthorizedError()
             })
@@ -174,16 +176,20 @@ export default class BankIdProvider implements AuthProviderFactory {
             case 'invalid_data':
             case 'unauthorized_client':
             case 'invalid_token':
-            case 'invalid_grant':
+            case 'invalid_grant': {
                 throw new UnauthorizedError()
-            case 'access_denied':
+            }
+            case 'access_denied': {
                 // ODO: add in diia-app new error
                 // throw new ForbiddenException();
                 throw new UnauthorizedError()
-            case 'temporarily_unavailable':
+            }
+            case 'temporarily_unavailable': {
                 throw new ServiceUnavailableError()
-            default:
+            }
+            default: {
                 throw new UnauthorizedError()
+            }
         }
     }
 
@@ -216,9 +222,9 @@ export default class BankIdProvider implements AuthProviderFactory {
             const { cert: certResult } = await this.bankIdCryptoServiceClient.generateCertificate({})
 
             cert = certResult
-        } catch (e) {
-            return utils.handleError(e, (err) => {
-                this.logger.error('BankId: Certificate generation error', { err })
+        } catch (err) {
+            return utils.handleError(err, (apiError) => {
+                this.logger.error('BankId: Certificate generation error', { err: apiError })
 
                 throw new Error('BankId: Certificate generation error')
             })
@@ -228,7 +234,7 @@ export default class BankIdProvider implements AuthProviderFactory {
 
         const bankIdVersion = this.config.bankId.bankIdVersion
         switch (bankIdVersion) {
-            case BankIdVersion.V1:
+            case BankIdVersion.V1: {
                 clientPayload = JSON.stringify({
                     type: 'physical',
                     cert,
@@ -257,9 +263,11 @@ export default class BankIdProvider implements AuthProviderFactory {
                     ],
                 })
                 break
-            case BankIdVersion.V2:
+            }
+            case BankIdVersion.V2: {
                 clientPayload = JSON.stringify({ cert })
                 break
+            }
             default: {
                 const unhandledBankIdVersion: never = bankIdVersion
 

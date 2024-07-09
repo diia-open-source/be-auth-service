@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto'
+import { randomUUID } from 'node:crypto'
 
 const uuidv4 = jest.fn()
 const randomUuid = randomUUID()

@@ -1,10 +1,10 @@
-import { DocumentType } from '@diia-inhouse/types'
-
 import UserService from '@services/user'
 
 import FaceRecoAuthPhotoVerificationMockEventListener from '@mocks/externalEventListeners/faceRecoAuthPhotoVerification'
 
 import { AuthMockProvider, GetUserDataParams } from '@tests/interfaces/mocks/services/authMethods'
+
+import { DocumentType } from '@interfaces/services/documents'
 
 export default class PhotoIdMock implements AuthMockProvider {
     constructor(

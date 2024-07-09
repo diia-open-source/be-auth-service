@@ -4,7 +4,7 @@ import { ExternalCommunicator, ExternalEventBus } from '@diia-inhouse/diia-queue
 import { ModelNotFoundError } from '@diia-inhouse/errors'
 import { CacheService } from '@diia-inhouse/redis'
 import TestKit, { mockInstance } from '@diia-inhouse/test'
-import { DocumentTypeCamelCase, DurationS } from '@diia-inhouse/types'
+import { DurationS } from '@diia-inhouse/types'
 
 import NfcService from '@services/nfc'
 import UserService from '@services/user'
@@ -13,6 +13,7 @@ import NfcDataMapper from '@dataMappers/nfcDataMapper'
 
 import { GenderAsSex } from '@interfaces/services/authMethods'
 import { NfcUserDTO } from '@interfaces/services/authMethods/nfc'
+import { DocumentTypeCamelCase } from '@interfaces/services/documents'
 import { NfcVerificationRequest } from '@interfaces/services/nfc'
 
 describe(`${NfcService.name}`, () => {
@@ -170,7 +171,7 @@ describe(`${NfcService.name}`, () => {
 
             jest.spyOn(cacheServiceMock, 'get').mockResolvedValueOnce(stringifiedRequest)
             jest.spyOn(cacheServiceMock, 'remove').mockResolvedValueOnce(1)
-            jest.spyOn(externalCommunicatorMock, 'receive').mockResolvedValueOnce(undefined)
+            jest.spyOn(externalCommunicatorMock, 'receive').mockResolvedValueOnce(null)
 
             const { itn: userItn, international, ...croppedUser } = user
 

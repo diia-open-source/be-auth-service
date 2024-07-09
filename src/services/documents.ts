@@ -1,8 +1,8 @@
 import { MoleculerService } from '@diia-inhouse/diia-app'
 
-import { ActionVersion, DocumentType, EResidency, SessionType, UserTokenData } from '@diia-inhouse/types'
+import { ActionVersion, SessionType, UserTokenData } from '@diia-inhouse/types'
 
-import { CheckPassportResult, EResidencyCountryInfo } from '@interfaces/services/documents'
+import { CheckPassportResult, DocumentType, EResidency, EResidencyCountryInfo } from '@interfaces/services/documents'
 import { GetEResidencyToProcessParams } from '@interfaces/services/userAuthSteps'
 
 export default class DocumentsService {
